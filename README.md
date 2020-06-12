@@ -1,4 +1,4 @@
-# Quick guide Initial setup of the Folding@Home client
+# Quick guide to setting up and configuring the Folding@Home client
 
 Red Lions vs. COVID-19 - Together. Digital. For a cure.
 
@@ -9,7 +9,7 @@ Team ID 263581
 [🇩🇪 Deutsche Übersetzung](README.de.md)
 
 ## Purpose
-With the support of "Folding@Home" we can all participate in the digital search for a cure for the SARS-CoV-2 virus ("Corona crisis").
+With the support of the project "Folding@Home" we can all participate in the digital search for a cure for the SARS-CoV-2 virus ("Corona crisis").
 
 By participating in this digital initiative, we send a positive signal to all colleagues, friends, acquaintances and partners in the home office to join in. Everyone can volunteer the computing power of their private PC to join our F@H team "The Red Insurance Lions" ("Red Lions").
 
