@@ -8,6 +8,10 @@ Team ID 263581
 
 [🇩🇪 Deutsche Übersetzung](README.de.md)
 
+## Note
+
+A guide to setting up Folding@Home clients for the benefit of COVID-19 research to participate in a **joint, private commitment**.
+
 ## Purpose
 With the support of the project "Folding@Home" we can all participate in the digital search for a cure for the SARS-CoV-2 virus ("Corona crisis").
 
