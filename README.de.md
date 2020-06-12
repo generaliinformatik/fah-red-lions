@@ -11,7 +11,8 @@ Team ID 263581
 
 ## Abgrenzung
 
-Eine Anleitung zur Einrichtung der Folding@Home-Clients zu Gunsten der COVID-19-Forschung zur Mitwirkung an einem gemeinsamen, **privaten Engagement** mitzuwirken.
+Eine Anleitung zur Einrichtung der Folding@Home-Clients zu Gunsten der COVID-19-Forschung an einem **gemeinsamen, privaten Engagement** mitzuwirken.
+
 
 ## Zweck
 Mit der Unterstützung von „Folding@Home“ können wir uns alle an der digitalen Suche nach einem Heilmittel gegen das Virus SARS-CoV-2 ("Corona-Krise").
