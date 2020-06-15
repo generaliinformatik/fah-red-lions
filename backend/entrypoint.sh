@@ -5,6 +5,6 @@ printenv | cat - /etc/cron.d/cjob > /code/cjob.tmp \
 
 chmod 744 /etc/cron.d/cjob
 
-tail -f /code/cron.log &
+tail -f /code/logs/cron.log &
 
 cron -f

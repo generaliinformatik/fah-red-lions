@@ -2,8 +2,8 @@
     "baseurl":"https://stats.foldingathome.org/api/team/",
     "team": 263581,
     "database":{
-        "sqlite": "folding-stats.db",
-        "csv": "folding-stats.csv",
-        "rid":"folding-stats.rid"
+        "sqlite": "data/folding-stats.db",
+        "csv": "data/folding-stats.csv",
+        "rid":"data/folding-stats.rid"
     }
 }

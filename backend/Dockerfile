@@ -2,15 +2,16 @@ FROM python:3
 
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get install -y cron
-RUN touch /var/log/cron.log
 
 RUN mkdir /code
+RUN mkdir /code/logs
+RUN mkdir /code/data
 WORKDIR /code
 ADD . /code/
 
 RUN pip3 install -r /code/requirements.txt
 
-RUN touch /code/cron.log
+RUN touch /code/logs/cron.log
 
 COPY folding-stats-crontab /etc/cron.d/cjob
 RUN chmod 0744 /etc/cron.d/cjob

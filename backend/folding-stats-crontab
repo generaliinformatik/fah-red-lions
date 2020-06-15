@@ -1,3 +1,3 @@
-* * * * * root python3 /code/folding-stats.py >> /code/cron.log
+* * * * * root python3 /code/folding-stats.py >> /code/logs/cron.log
 # Empty line
 
