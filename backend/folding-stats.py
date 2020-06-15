@@ -26,6 +26,7 @@ from json import loads, dumps
 import sqlite3
 import datetime
 import requests
+from datetime import datetime as dt
 
 class DictQuery(dict):
     '''
@@ -58,49 +59,75 @@ class DictQuery(dict):
 def getconfig(this_dict, this_setting, this_default=""):
     return DictQuery(this_dict).get(this_setting, this_default)
 
+
+
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
-print("mypath = ", mypath)
+#print("mypath = ", mypath)
+
 # Load config
 config_file = mypath + "/folding-stats.json"
 with open(config_file, 'r') as cfg:
     config = loads(cfg.read())
 
 url=getconfig(config,"baseurl","")+str(getconfig(config,"team"))
-# It is a good practice not to hardcode the credentials. So ask the user to enter credentials at runtime
 myResponse = requests.get(url)
-#print (myResponse.status_code)
 
 # For successful API call, response code will be 200 (OK)
 if(myResponse.ok):
-
-    # Loading the response data into a dict variable
-    # json.loads takes in only binary or string variables so using content to fetch binary content
-    # Loads (Load String) takes a Json file and converts into python data structure (dict or list, depending on JSON)
     jStats = json.loads(myResponse.content)
 
-#    print("The response contains {0} properties".format(len(jStats)))
-#    print("\n")
-#    for key in jStats:
-#        print(str(key) + " : " + str(jStats[key]))
+    # read rid file (old rank)
+    rank_old = 0
+    if getconfig(config,"database/rid","") != "":
+        try:
+            with open(mypath + "/" + getconfig(config,"database/rid",""), 'r') as f:
+                rank_old = f.readline()
+                f.close()
+            #print("Previous rank    : ", str(rank_old))
+        except IOError:
+            #print("Could not read file:", mypath + "/" + getconfig(config,"database/rid",""))
+            pass
 
-    print("Aktueller Rang: ", getconfig(jStats,"rank","0"))
+    rank_new = getconfig(jStats,"rank","0")
+    #print("Current rank: ", rank_new)
 
-    # Create a database connection
-    # (This will create a SQLite3 database called 'tutorial.db'.)
-    conn = sqlite3.connect(mypath + "/" + getconfig(config,"database/sqlite",""))
-    cur = conn.cursor()
-    cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, team integer, rank integer)')
-    cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), 263581, "+str(getconfig(jStats,"rank","0"))+")")
-    conn.commit()
-    # Close the connection
-    conn.close()
-
-    if getconfig(config,"database/csv","") != "":
+    # write rid file (new rank (or old if not updated))
+    rank_updated = False
+    # rank id file
+    if getconfig(config,"database/rid","") != "":
         # write csv if value is given
-        with open(mypath + "/" + getconfig(config,"database/csv",""), 'w+') as f:
-            x = datetime.datetime.now()
-            f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(getconfig(jStats,"rank","0")))
+        with open(mypath + "/" + getconfig(config,"database/rid",""), 'w') as f:
+            f.write(str(rank_new))
             f.close()
+
+        if int(rank_new) != int(rank_old):
+            rank_updated = True
+
+    # update database/csv if rank was changed
+    if rank_updated == True:
+        print("Rank changed (%s -> %s / %s)" % (rank_old, rank_new, dt.now()))
+
+        # write database
+        conn = sqlite3.connect(mypath + "/" + getconfig(config,"database/sqlite",""))
+        cur = conn.cursor()
+        cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, team integer, rank integer)')
+        cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), 263581, "+str(rank_new)+")")
+        conn.commit()
+        # Close the connection
+        conn.close()
+
+        # write csv
+        if getconfig(config,"database/csv","") != "":
+            #print("Rank changed. CSV file is being updated...")
+
+            # write csv if value is given
+            with open(mypath + "/" + getconfig(config,"database/csv",""), 'w+') as f:
+                x = datetime.datetime.now()
+                f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(rank_new))
+                f.close()
+    else:
+        #print("Rank unchanged.")
+        pass
 
 else:
   # If response code is not ok (200), print the resulting http error code with description

@@ -1,0 +1,7 @@
+.dockerignore
+Dockerfile
+README.md
+.gitignore
+*.csv
+*.db
+*.rid

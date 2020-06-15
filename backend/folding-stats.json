@@ -3,6 +3,7 @@
     "team": 263581,
     "database":{
         "sqlite": "folding-stats.db",
-        "csv": "folding-stats.csv"
+        "csv": "folding-stats.csv",
+        "rid":"folding-stats.rid"
     }
 }
