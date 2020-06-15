@@ -27,6 +27,33 @@ import sqlite3
 import datetime
 import requests
 from datetime import datetime as dt
+import logging
+
+
+def initialize_logger(output_dir):
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+     
+    # create console handler and set level to info
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+ 
+    # create error file handler and set level to error
+    handler = logging.FileHandler(os.path.join(output_dir, "folding-stats-error.log"),"a", encoding=None, delay="true")
+    handler.setLevel(logging.ERROR)
+    formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+ 
+    # create debug file handler and set level to debug
+    handler = logging.FileHandler(os.path.join(output_dir, "folding-stats.log"),"a")
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s")
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 class DictQuery(dict):
     '''
@@ -64,11 +91,16 @@ def getconfig(this_dict, this_setting, this_default=""):
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 #print("mypath = ", mypath)
 
+initialize_logger(mypath+"/logs/")
+
+logging.debug("Script was started at %s", (dt.now()))
+
 # Load config
 config_file = mypath + "/folding-stats.json"
 with open(config_file, 'r') as cfg:
     config = loads(cfg.read())
 
+logging.info("Checking Folding@Home stats...")
 url=getconfig(config,"baseurl","")+str(getconfig(config,"team"))
 myResponse = requests.get(url)
 
@@ -83,13 +115,13 @@ if(myResponse.ok):
             with open(mypath + "/" + getconfig(config,"database/rid",""), 'r') as f:
                 rank_old = f.readline()
                 f.close()
-            #print("Previous rank    : ", str(rank_old))
+            logging.debug("Previous rank    : %s", (str(rank_old)))
         except IOError:
-            #print("Could not read file:", mypath + "/" + getconfig(config,"database/rid",""))
+            logging.warning("Could not read file:", mypath + "/" + getconfig(config,"database/rid",""))
             pass
 
     rank_new = getconfig(jStats,"rank","0")
-    #print("Current rank: ", rank_new)
+    logging.debug("Current rank: %s", (rank_new))
 
     # write rid file (new rank (or old if not updated))
     rank_updated = False
@@ -105,7 +137,7 @@ if(myResponse.ok):
 
     # update database/csv if rank was changed
     if rank_updated == True:
-        print("Rank changed (%s -> %s / %s)" % (rank_old, rank_new, dt.now()))
+        logging.info("Rank changed (%s -> %s / %s)", (rank_old, rank_new, dt.now()))
 
         # write database
         conn = sqlite3.connect(mypath + "/" + getconfig(config,"database/sqlite",""))
@@ -118,7 +150,7 @@ if(myResponse.ok):
 
         # write csv
         if getconfig(config,"database/csv","") != "":
-            #print("Rank changed. CSV file is being updated...")
+            logging.debug("Rank changed. CSV file is being updated...")
 
             # write csv if value is given
             with open(mypath + "/" + getconfig(config,"database/csv",""), 'w+') as f:
@@ -126,7 +158,7 @@ if(myResponse.ok):
                 f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(rank_new))
                 f.close()
     else:
-        #print("Rank unchanged.")
+        logging.info("Rank unchanged.")
         pass
 
 else:
