@@ -17,6 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import os
+import sys
 import json
 import re
 import subprocess
@@ -56,10 +58,10 @@ class DictQuery(dict):
 def getconfig(this_dict, this_setting, this_default=""):
     return DictQuery(this_dict).get(this_setting, this_default)
 
-
-
+mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
+print("mypath = ", mypath)
 # Load config
-config_file = "folding-stats.json"
+config_file = mypath + "/folding-stats.json"
 with open(config_file, 'r') as cfg:
     config = loads(cfg.read())
 
@@ -85,7 +87,7 @@ if(myResponse.ok):
 
     # Create a database connection
     # (This will create a SQLite3 database called 'tutorial.db'.)
-    conn = sqlite3.connect(getconfig(config,"database/sqlite",""))
+    conn = sqlite3.connect(mypath + "/" + getconfig(config,"database/sqlite",""))
     cur = conn.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, team integer, rank integer)')
     cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), 263581, "+str(getconfig(jStats,"rank","0"))+")")
@@ -95,7 +97,7 @@ if(myResponse.ok):
 
     if getconfig(config,"database/csv","") != "":
         # write csv if value is given
-        with open(getconfig(config,"database/csv",""), 'w') as f:
+        with open(mypath + "/" + getconfig(config,"database/csv",""), 'w+') as f:
             x = datetime.datetime.now()
             f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(getconfig(jStats,"rank","0")))
             f.close()
