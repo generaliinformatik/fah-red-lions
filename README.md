@@ -32,12 +32,6 @@ Clients are available for Windows, Mac, Linux, Android and as VMware. Furthermor
 All downloads in the overview:
 https://foldingathome.org/alternative-downloads/
 
-#### Windows (as of 04/23/20):
-https://download.foldingathome.org/releases/public/release/fah-installer/windows-10-32bit/v7.6/fah-installer_7.6.9_x86.exe
-
-#### Mac (as of 04/23/20):
-https://download.foldingathome.org/releases/public/release/fah-installer/osx-10.11-64bit/v7.6/fah-installer_7.6.9_x86_64.mpkg.zip
-
 ## Installation of the client
 
 Depending on the existing operating system, the client must be installed like any application. During installation, a background process is installed that performs the calculation according to user settings.
