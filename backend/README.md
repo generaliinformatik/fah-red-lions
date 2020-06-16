@@ -71,3 +71,33 @@ docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v 
 ## Test
 
 Delete the file ```data/folding-stats.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp.
+
+## Database
+
+### Schemas
+
+#### Table stats
+
+In the table ```stats``` the ranking information of the team is recorded. The recording is usually done when the rank changes (or the *.rid file is deleted)).
+
+```
+CREATE TABLE IF NOT EXISTS stats (
+  "datetime" text,
+  team integer,
+  rank integer
+);
+```
+
+#### Table team
+
+In the Team table, the team members are recorded with the relevant attributes in order to be able to evaluate their trends historically. At a later stage, the changes can be displayed as a graph or time line, for example. The data is only captured if there have been changes to the rank of the team, since in this case there must have been a change to the attributes ```rank``` or ```credit``` for at least one team member.
+
+```
+CREATE TABLE IF NOT EXISTS team (
+  "datetime" text,
+  id integer,
+  name text,
+  rank integer,
+  credit integer
+);
+```

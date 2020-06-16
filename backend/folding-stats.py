@@ -2,20 +2,28 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
+# MIT License
+#
 # Copyright (C) 2020 Generali AG, Rene Fuehrer <rene.fuehrer@generali.com>
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-#   http://www.apache.org/licenses/LICENSE-2.0
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
 
 import os
 import sys
@@ -33,21 +41,21 @@ import logging
 def initialize_logger(output_dir):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-     
+
     # create console handler and set level to info
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setLevel(logging.INFO)
     formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
- 
+
     # create error file handler and set level to error
     handler = logging.FileHandler(os.path.join(output_dir, "folding-stats-error.log"),"a", encoding=None, delay="true")
     handler.setLevel(logging.ERROR)
     formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
- 
+
     # create debug file handler and set level to debug
     handler = logging.FileHandler(os.path.join(output_dir, "folding-stats.log"),"a")
     handler.setLevel(logging.DEBUG)
@@ -150,10 +158,29 @@ if(myResponse.ok):
             cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, team integer, rank integer)')
             cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), 263581, "+str(rank_new)+")")
             conn.commit()
+
+            # getting team member stats (only if team rank is changed)
+            logging.info("Getting team member stats...")
+            for member in getconfig(jStats,"donors"):
+                member_name=member["name"]
+                logging.info("Collecting team meber data of '%s'", str(member_name))
+                member_id=member["id"]
+                try:
+                    member_rank=member["rank"]
+                except:
+                    member_rank=999999
+                member_credit=member["credit"]
+                logging.info("%s (%s)", member_name, member_id)
+
+                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, id INTEGER, name TEXT, rank integer, credit INTEGER)')
+                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+")")
+
+                conn.commit()
+
             # Close the connection
             conn.close()
         else:
-            logging.info("No CSV file given.")    
+            logging.info("No CSV file given.")
 
         # write csv
         if getconfig(config,"database/csv","") != "":
@@ -167,7 +194,7 @@ if(myResponse.ok):
                 f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(rank_new)+"\n")
                 f.close()
         else:
-            logging.info("No CSV file given.")    
+            logging.info("No CSV file given.")
 
     else:
         logging.info("Rank unchanged (%s).", rank_new)
