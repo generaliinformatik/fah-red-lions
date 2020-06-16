@@ -34,7 +34,11 @@ In the file ```folding-stats.json``` the required configurations can be set. The
 
 ### Installation
 
-Only Python and the corresponding modules must be installed.
+Only Python and the corresponding modules must be installed:
+
+```bash
+pip3 install -r requirements.txt
+```
 
 ### Execution
 
