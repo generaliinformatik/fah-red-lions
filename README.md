@@ -10,7 +10,7 @@ Team ID 263581
 
 ## Note #1
 
-In the meantime, we also offer a backend component to determine the team ranking. This enables us to determine and track every change in a ranking. This function can be used flexibly as a Python in a docker and can be adapted to any team. You can find further information in the folder [Backend](backend/README.md).
+In the meantime, we also offer a backend component to determine the team ranking. This enables us to determine and track every change in a ranking. This function can be used flexibly as a Python in a docker and can be adapted to any team. You can find further information in the folder [Backend](backend/).
 
 ## Note #2
 

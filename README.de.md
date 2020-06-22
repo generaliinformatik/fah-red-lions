@@ -11,7 +11,7 @@ Team ID 263581
 
 ## Hinweis #1
 
-Wir bieten in der Zwischenzeit auch eine Backend-Komponente zur Ermittlung des Team-Ranking an. Wir können dadurch jede Veränderung eines Rankings ermitteln und nachvollziehen. Diese Funktion ist als Python in einem Docker flexible einsetzbar und kann auf jedes beliebige Team angepasst werden. Du findets weitere Informationen im Ordner [Backend](backend/README.md).
+Wir bieten in der Zwischenzeit auch eine Backend-Komponente zur Ermittlung des Team-Ranking an. Wir können dadurch jede Veränderung eines Rankings ermitteln und nachvollziehen. Diese Funktion ist als Python in einem Docker flexible einsetzbar und kann auf jedes beliebige Team angepasst werden. Du findets weitere Informationen im Ordner [Backend](backend/).
 
 ## Hinweis #2
 
