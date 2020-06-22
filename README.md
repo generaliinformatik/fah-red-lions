@@ -8,7 +8,11 @@ Team ID 263581
 
 [🇩🇪 Deutsche Übersetzung](README.de.md)
 
-## Note
+## Note #1
+
+In the meantime, we also offer a backend component to determine the team ranking. This enables us to determine and track every change in a ranking. This function can be used flexibly as a Python in a docker and can be adapted to any team. You can find further information in the folder [Backend](backend/README.md).
+
+## Note #2
 
 A guide to setting up Folding@Home clients for the benefit of COVID-19 research to participate in a **joint, private commitment**.
 

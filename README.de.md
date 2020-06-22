@@ -9,10 +9,13 @@ Team ID 263581
 
 [🇬🇧 English translation](README.md)
 
-## Abgrenzung
+## Hinweis #1
+
+Wir bieten in der Zwischenzeit auch eine Backend-Komponente zur Ermittlung des Team-Ranking an. Wir können dadurch jede Veränderung eines Rankings ermitteln und nachvollziehen. Diese Funktion ist als Python in einem Docker flexible einsetzbar und kann auf jedes beliebige Team angepasst werden. Du findets weitere Informationen im Ordner [Backend](backend/README.md).
+
+## Hinweis #2
 
 Eine Anleitung zur Einrichtung der Folding@Home-Clients zu Gunsten der COVID-19-Forschung an einem **gemeinsamen, privaten Engagement** mitzuwirken.
-
 
 ## Zweck
 Mit der Unterstützung von „Folding@Home“ können wir uns alle an der digitalen Suche nach einem Heilmittel gegen das Virus SARS-CoV-2 ("Corona-Krise").
