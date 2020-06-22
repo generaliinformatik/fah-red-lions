@@ -188,6 +188,14 @@ if(myResponse.ok):
 
             # write csv if value is given
             file_csv = mypath + "/" + getconfig(config,"database/csv","")
+
+            # initialize csv header if file is not present 
+            file_exists = os.path.isfile(file_csv)
+            if not file_exists:
+                with open(file_csv, 'w') as f:
+                    f.write("timestamp,team,rank\n")
+                    f.close()
+
             logging.debug("filename: %s", (file_csv))
             with open(file_csv, 'a') as f:
                 x = datetime.datetime.now()

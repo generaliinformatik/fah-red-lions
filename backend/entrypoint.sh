@@ -7,4 +7,6 @@ chmod 744 /etc/cron.d/cjob
 
 tail -f /code/logs/cron.log &
 
+/code/webservice.sh &
+
 cron -f

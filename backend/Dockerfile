@@ -20,4 +20,7 @@ RUN crontab /etc/cron.d/cjob
 
 ENV PYTHONUNBUFFERED 1
 #CMD cron -f
+
+EXPOSE 8888
+
 ENTRYPOINT ["/bin/sh", "/code/entrypoint.sh"]

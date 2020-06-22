@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+ 
+body { font: 12px Arial;}
+ 
+path { 
+  stroke: steelblue;
+  stroke-width: 2;
+  fill: none;
+}
+ 
+.axis path,
+.axis line {
+	fill: none;
+	stroke: grey;
+	stroke-width: 1;
+	shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+.y {
+  stroke: lightgrey;
+  stroke-opacity: 0.7;
+  shape-rendering: crispEdges;
+}
+
+.zeroline {
+            fill: none;
+            stroke: darkgray;
+            stroke-width: 0.5px;
+            stroke-dasharray: 5 5;
+        }
+.zerolinetext {
+            fill: darkgray;
+        }
+.lastvaluetext {
+            fill: steelblue;
+			font-weight: bold;
+        }
+
+</style>
+<body>
+ 
+<!-- load the d3.js library -->	
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+ 
+<script>
+ 
+// Set the dimensions of the canvas / graph
+var	margin = {top: 30, right: 20, bottom: 30, left: 50},
+	width = 600 - margin.left - margin.right,
+	height = 270 - margin.top - margin.bottom;
+ 
+// Parse the date / time
+var	parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+ 
+// Set the ranges
+var	x = d3.time.scale().range([0, width]);
+var	y = d3.scale.linear().range([height, 0]);
+ 
+// Define the axes
+var	xAxis = d3.svg.axis().scale(x)
+	.orient("bottom").ticks(10);
+ 
+var	yAxis = d3.svg.axis().scale(y)
+	.orient("left").ticks(10);
+ 
+// Define the line
+var	valueline = d3.svg.line()
+	.x(function(d) { return x(d.timestamp); })
+	.y(function(d) { return y(d.rank); });
+    
+// Adds the svg canvas
+var	svg = d3.select("body")
+	.append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom)
+	.append("g")
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+ 
+
+// Get the data
+d3.csv("data/folding-stats.csv", function(error, data) {
+	data.forEach(function(d) {
+		console.log(parseDate(d.timestamp))
+		d.timestamp = parseDate(d.timestamp);
+		d.rank = +d.rank;
+	});
+ 
+	// Scale the range of the data
+	x.domain(d3.extent(data, function(d) { return d.timestamp; }));
+	y.domain([0, d3.max(data, function(d) { return d.rank; })]);
+ 
+	// Add the valueline path.
+	svg.append("path")	
+		.attr("class", "line")
+		.attr("d", valueline(data));
+ 
+	// Add the X Axis
+	svg.append("g")		
+		.attr("class", "x axis")
+		.attr("transform", "translate(0," + height + ")")
+		.call(xAxis);
+ 
+	// Add the Y Axis
+	svg.append("g")		
+		.attr("class", "y axis")
+		.call(yAxis);
+
+	svg.append('line')
+				.attr('x1', 0)
+				.attr('y1', y(10000))
+				.attr('x2', width)
+				.attr('y2', y(10000))
+				.attr('class', 'zeroline');
+    svg.append('text')
+                    .attr('x', width+20)
+                    .attr('y', y(10000))
+                    .attr('dy', '1em')
+                    .attr('text-anchor', 'end')
+                    .text("10.000")
+                    .attr('class', 'zerolinetext');
+
+				svg.append('line')
+				.attr('x1', 0)
+				.attr('y1', y(1000))
+				.attr('x2', width)
+				.attr('y2', y(1000))
+				.attr('class', 'zeroline');
+	svg.append('text')
+                    .attr('x', width+20)
+                    .attr('y', y(1000))
+                    .attr('dy', '1em')
+                    .attr('text-anchor', 'end')
+                    .text("1.000")
+                    .attr('class', 'zerolinetext');
+
+	svg.append('text')
+                    .attr('x', width+20)
+                    .attr('y', y(d3.min(data, function(d) { return d.rank; })))
+                    .attr('dy', '1em')
+                    .attr('text-anchor', 'end')
+                    .text(d3.min(data, function(d) { return d.rank; }))
+                    .attr('class', 'lastvaluetext');
+
+	});
+
+
+</script>
+</body>

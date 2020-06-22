@@ -73,6 +73,7 @@ To mount local directories to your container we suggest the following command. R
 ```bash
 docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ generaliinformatik/folding-stats
 ```
+
 ## Pre-build image
 
 Auf Docker Hub steht ein Image für den Gebrauch zur Verfügung. Das Image wird immer aktualisiert, wenn der Master Branch in diesem Repository aktualisiert wird. Für die Nutzung dieses Images empfehlen wir die Konfiguration mit den oben dokumentierten Mount-Volumes.
@@ -82,6 +83,16 @@ Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/re
 ## Test
 
 Delete the file ```data/folding-stats.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp.
+
+## Visualization
+
+The values read out can be displayed in the container in the browser via a simple web server on port 8888. For this purpose, the IP of the container with port 8888 must be called up. Alternatively, the port can be redirected when the container is started.
+
+```bash
+docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -p 8888:8888 generaliinformatik/folding-stats
+```
+
+Note: This is a Quick & Dirty solution to make the data viewable outside the console.
 
 ## Database
 
