@@ -44,14 +44,19 @@ path {
 			font-weight: bold;
         }
 
+td, th {
+    padding: 1px 4px;
+}
 </style>
 <body>
- 
+	<p>
+		<h2>Verlauf</h2>
+	</p>
+	
 <!-- load the d3.js library -->	
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
- 
+
 <script>
- 
 // Set the dimensions of the canvas / graph
 var	margin = {top: 30, right: 20, bottom: 30, left: 50},
 	width = 600 - margin.left - margin.right,
@@ -153,4 +158,45 @@ d3.csv("data/folding-stats.csv", function(error, data) {
 
 
 </script>
+<p>
+	<h2>Historische Werte</h2>
+</p>
+<script>
+
+	var tabulate = function (data,columns) {
+	var table = d3.select('body').append('table')
+	  var thead = table.append('thead')
+	  var tbody = table.append('tbody')
+  
+	  thead.append('tr')
+		.selectAll('th')
+		  .data(columns)
+		  .enter()
+		.append('th')
+		  .text(function (d) { return d })
+  
+	  var rows = tbody.selectAll('tr')
+		  .data(data)
+		  .enter()
+		.append('tr')
+  
+	  var cells = rows.selectAll('td')
+		  .data(function(row) {
+			  return columns.map(function (column) {
+				  return { column: column, value: row[column] }
+			})
+		})
+		.enter()
+	  .append('td')
+		.text(function (d) { return d.value })
+  
+	return table;
+  }
+  
+  d3.csv('data/folding-stats.csv',function (data) {
+	  var columns = ['timestamp','team','rank']
+	tabulate(data,columns)
+  })
+</script>
+
 </body>
