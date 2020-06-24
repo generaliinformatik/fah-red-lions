@@ -63,6 +63,16 @@
 			fill: darkgray;
 			font: 12px sans-serif;
 		}
+		.goalline {
+			fill: none;
+			stroke: darkred;
+			stroke-width: 1.5px;
+			stroke-dasharray: 5 5;
+		}
+		.goallinetext {
+			fill: darkred;
+			font: 12px sans-serif;
+		}
 		.lastvaluetext {
 			fill: steelblue;
 			font-weight: bold;
@@ -83,12 +93,39 @@
 
 	<div><button id='saveButton'>Export visualization to PNG</button></div>
 
-
 <script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
 <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
 <script src="https://d3js.org/d3.v3.min.js"></script>
 
 <script>
+
+	var germanFormatters = d3.locale({
+	"decimal": ",",
+	"thousands": ".",
+	"grouping": [3],
+	"currency": ["€", ""],
+	"dateTime": "%a %b %e %X %Y",
+	"date": "%d.%m.%Y",
+	"time": "%H:%M:%S",
+	"periods": ["AM", "PM"],
+	"days": ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+	"shortDays": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+	"months": ["Jannuar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+	"shortMonths": ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+	});
+
+	var customTimeFormat = germanFormatters.timeFormat.multi([
+		[".%L", function(d) { return d.getMilliseconds(); }],
+		[":%S", function(d) { return d.getSeconds(); }],
+		["%I:%M", function(d) { return d.getMinutes(); }],
+		["%Hh", function(d) { return d.getHours(); }],
+		["%a %d", function(d) { return d.getDay() && d.getDate() != 1; }],
+		["%b %d", function(d) { return d.getDate() != 1; }],
+		["%B", function(d) { return d.getMonth(); }],
+		["%Y", function() { return true; }]
+	]); 
+
+
 	// Set the dimensions of the canvas / graph
 	var	margin = {top: 30, right: 20, bottom: 30, left: 50},
 		width = 600 - margin.left - margin.right,
@@ -98,12 +135,14 @@
 	var	parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
 	
 	// Set the ranges
-	var	x = d3.time.scale().range([0, width]);
-	var	y = d3.scale.linear().range([height, 0]);
+	var	x = d3.time.scale().range([0, width-100]);
+//	var	y = d3.scale.linear().range([height, 0]);
+	var	y = d3.scale.linear().range([0,height]);
 	
 	// Define the axes
 	var	xAxis = d3.svg.axis().scale(x)
-		.orient("bottom").ticks(10);
+		.orient("bottom").ticks(10)
+		.tickFormat(customTimeFormat);
 	
 	var	yAxis = d3.svg.axis().scale(y)
 		.orient("left").ticks(10);
@@ -127,6 +166,7 @@
 	d3.csv("data/folding-stats.csv", function(error, data) {
 		data.forEach(function(d) {
 			d.timestamp = parseDate(d.timestamp);
+			//d.rank = +(d.rank);
 			d.rank = +(d.rank);
 		});
 	
@@ -157,11 +197,11 @@
 					.attr('y2', y(10000))
 					.attr('class', 'zeroline');
 		svg.append('text')
-						.attr('x', width+20)
+						.attr('x', width)
 						.attr('y', y(10000))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("10,000")
+						.text("MS#1: 10000")
 						.attr('class', 'zerolinetext');
 		svg.append('line')
 						.attr('x1', 0)
@@ -170,28 +210,28 @@
 						.attr('y2', y(5000))
 						.attr('class', 'zeroline');
 		svg.append('text')
-						.attr('x', width+20)
+						.attr('x', width)
 						.attr('y', y(5000))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("5,000")
-						.attr('class', 'zerolinetext');
+						.text("MS#2: 5000")
+						.attr('class', 'goallinetext');
 		svg.append('line')
 						.attr('x1', 0)
 						.attr('y1', y(1000))
 						.attr('x2', width)
 						.attr('y2', y(1000))
-						.attr('class', 'zeroline');
+						.attr('class', 'goalline');
 		svg.append('text')
-						.attr('x', width+20)
+						.attr('x', width)
 						.attr('y', y(1000))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("1,000")
-						.attr('class', 'zerolinetext');
+						.text("GOAL: 150")
+						.attr('class', 'goallinetext');
 
 		svg.append('text')
-						.attr('x', width+20)
+						.attr('x', width-80)
 						.attr('y', y(d3.min(data, function(d) { return d.rank; })))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
@@ -211,7 +251,7 @@ d3.select('#saveButton').on('click', function(){
 	svgString2Image( svgString, 2*width, 2*height, 'png', save ); // passes Blob and filesize String to the callback
 
 	function save( dataBlob, filesize ){
-		saveAs( dataBlob, 'D3 vis exported to PNG.png' ); // FileSaver.js function
+		saveAs( dataBlob, 'rank.png' ); // FileSaver.js function
 	}
 });
 
@@ -352,14 +392,6 @@ function svgString2Image( svgString, width, height, format, callback ) {
 		var columns = ['timestamp','team','rank']
 		tabulate(data,columns)
 	})
-	</script>
-</div>
-
-<div id="status">
-	<h2>Status</h2>
-	<div id="gtag"></p>
-	<script>
-			document.getElementById("gtag").innerHTML = "done";
 	</script>
 </div>
 
