@@ -114,12 +114,15 @@ CREATE TABLE IF NOT EXISTS stats (
 
 In the Team table, the team members are recorded with the relevant attributes in order to be able to evaluate their trends historically. At a later stage, the changes can be displayed as a graph or time line, for example. The data is only captured if there have been changes to the rank of the team, since in this case there must have been a change to the attributes ```rank``` or ```credit``` for at least one team member.
 
+The account or accounts responsible for the current change are marked with ```supporter=1```. This check is performed for each ranking change, so that an evaluation of the contributing accounts is possible.
+
 ```sql
 CREATE TABLE IF NOT EXISTS team (
   "datetime" text,
   id integer,
   name text,
   rank integer,
-  credit integer
+  credit integer,
+  supporter integer
 );
 ```

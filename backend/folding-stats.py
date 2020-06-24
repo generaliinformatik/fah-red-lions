@@ -167,13 +167,30 @@ if(myResponse.ok):
                 member_id=member["id"]
                 try:
                     member_rank=member["rank"]
+                    sql_select_Query = "select credit from (select * from team where id="+str(member_id)+" order by datetime DESC LIMIT 2) ORDER BY datetime ASC LIMIT 1"
+                    cur = conn.cursor()
+                    cur.execute(sql_select_Query)
+                    record = cur.fetchone()
+
+                    member_supporter=0
+                    member_credit=member["credit"]
+                    member_old_credit=record[0]
+                    logging.info("checkin changed credits (old/new credits): %s => %s" % (str(member_old_credit), str(member_credit)))
+                    if member_credit != member_old_credit:
+                        member_supporter=1
+                        logging.info("member IS A SUPPORTER of this rank change")
+                    else:
+                        member_supporter=0
+                        logging.info("member is not a supporter of this rank change")
                 except:
                     member_rank=999999
+                    member_supporter=0
+
                 member_credit=member["credit"]
                 logging.info("%s (%s)", member_name, member_id)
 
-                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, id INTEGER, name TEXT, rank integer, credit INTEGER)')
-                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+")")
+                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
+                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
 
                 conn.commit()
 
