@@ -28,6 +28,7 @@
 import os
 import sys
 import json
+import csv
 import re
 import subprocess
 from json import loads, dumps
@@ -109,6 +110,8 @@ with open(config_file, 'r') as cfg:
     config = loads(cfg.read())
 
 logging.info("Checking Folding@Home stats...")
+uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+logging.info("UID_DATETIME=%s", (uid_datetime))
 url=getconfig(config,"baseurl","")+str(getconfig(config,"team"))
 myResponse = requests.get(url)
 
@@ -155,8 +158,23 @@ if(myResponse.ok):
             logging.debug("filename: %s", (file_db))
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
-            cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, team integer, rank integer)')
-            cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), 263581, "+str(rank_new)+")")
+            cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)')
+
+            change_indicator = 0
+            try:
+                cur.execute("select rank from stats ORDER by datetime DESC LIMIT 1")
+                record = cur.fetchone()
+                logging.info("old db rank=%s" % (record[0]))
+                if rank_new < record[0]:
+                    logging.info("new rank < from db detected")
+                    change_indicator = 1
+                if rank_new > record[0]:
+                    logging.info("new rank > from db detected")
+                    change_indicator = -1
+            except:
+                change_indicator = 0
+
+            cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), '"+uid_datetime+"',263581, "+str(rank_new)+"," + str(change_indicator) + ")")
             conn.commit()
 
             # getting team member stats (only if team rank is changed)
@@ -189,13 +207,13 @@ if(myResponse.ok):
                 member_credit=member["credit"]
                 logging.info("%s (%s)", member_name, member_id)
 
-                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
-                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
+                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
+                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
 
                 conn.commit()
 
-            # Close the connection
-            conn.close()
+#            # Close the connection
+#            conn.close()
         else:
             logging.info("No CSV file given.")
 
@@ -207,19 +225,54 @@ if(myResponse.ok):
             file_csv = mypath + "/" + getconfig(config,"database/csv","")
 
             # initialize csv header if file is not present 
-            file_exists = os.path.isfile(file_csv)
-            if not file_exists:
-                with open(file_csv, 'w') as f:
-                    f.write("timestamp,team,rank\n")
-                    f.close()
+#            file_exists = os.path.isfile(file_csv)
+#            if not file_exists:
+#                with open(file_csv, 'w') as f:
+#                    f.write("timestamp,team,rank\n")
+#                    f.close()
 
             logging.debug("filename: %s", (file_csv))
-            with open(file_csv, 'a') as f:
-                x = datetime.datetime.now()
-                f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(rank_new)+"\n")
-                f.close()
+#            with open(file_csv, 'a') as f:
+#                x = datetime.datetime.now()
+#                f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(rank_new)+"\n")
+#                f.close()
+            cursor = conn.cursor()
+            cursor.execute("select * from stats")
+            with open(file_csv, "w") as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=",")
+                csv_writer.writerow([i[0] for i in cursor.description])
+                csv_writer.writerows(cursor)
+
         else:
             logging.info("No CSV file given.")
+
+        # write supporter csv
+        if getconfig(config,"database/supporter","") != "":
+            logging.info("Rank changed. SUPPORTER CSV file is being updated...")
+
+            # write csv if value is given
+            file_csv = mypath + "/" + getconfig(config,"database/supporter","")
+
+            # initialize csv header if file is not present 
+            if getconfig(config,"database/sqlite","") != "":
+                # write database
+                file_db = mypath + "/" + getconfig(config,"database/sqlite","")
+                conn = sqlite3.connect(file_db)
+                cur = conn.cursor()
+
+                with open(file_csv, 'w') as f:
+                    f.write("supporter\n")
+                    # get unique suppporter names from the last 1 updates
+
+                    sql_select_Query = "select distinct name from team where uid_datetime in (select distinct uid_datetime from team order by uid_datetime desc limit 1) and supporter=1"
+                    cur.execute(sql_select_Query)
+                    records = cur.fetchall()
+                    for row in records:
+                        logging.info("name=%s" % (row[0]))
+                        f.write(row[0]+"\n")
+                    f.close()
+            else:
+                logging.info("No SUPPORTER CSV file given.")
 
     else:
         logging.info("Rank unchanged (%s).", rank_new)
