@@ -159,19 +159,29 @@ if(myResponse.ok):
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)')
-
+            cur.execute('CREATE VIEW IF NOT EXISTS stats_view AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats')
+ 
+            # Here we calculate the difference (change) of the rank in relation
+            # to the row before as a backup.
+            # The main calculation is done by the sqlite view 'stats_view' where
+            # the difference is calculated by the LAG() function. Export is done
+            # by exporting the view later where the difference is automatically
+            # calculated!
             change_indicator = 0
             try:
                 cur.execute("select rank from stats ORDER by datetime DESC LIMIT 1")
                 record = cur.fetchone()
-                logging.info("old db rank=%s" % (record[0]))
-                if rank_new < record[0]:
-                    logging.info("new rank < from db detected")
-                    change_indicator = 1
-                if rank_new > record[0]:
-                    logging.info("new rank > from db detected")
-                    change_indicator = -1
+                rank_old = record[0]
+                logging.info("old db rank=%s" % (rank_old))
+                change_indicator = rank_old - rank_new
+                # new rank lower than the old rank
+                if change_indicator > 0:
+                    logging.debug("new rank < from db detected")
+                # new rank higher than the old rank
+                if change_indicator < 0:
+                    logging.debug("new rank > from db detected")
             except:
+                # rank unchanged or invalid
                 change_indicator = 0
 
             cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), '"+uid_datetime+"',263581, "+str(rank_new)+"," + str(change_indicator) + ")")
@@ -225,19 +235,9 @@ if(myResponse.ok):
             file_csv = mypath + "/" + getconfig(config,"database/csv","")
 
             # initialize csv header if file is not present 
-#            file_exists = os.path.isfile(file_csv)
-#            if not file_exists:
-#                with open(file_csv, 'w') as f:
-#                    f.write("timestamp,team,rank\n")
-#                    f.close()
-
             logging.debug("filename: %s", (file_csv))
-#            with open(file_csv, 'a') as f:
-#                x = datetime.datetime.now()
-#                f.write(x.strftime("%Y-%m-%d %X") + ","+str(getconfig(config,"team"))+","+str(rank_new)+"\n")
-#                f.close()
             cursor = conn.cursor()
-            cursor.execute("select * from stats")
+            cursor.execute("select * from stats_view")
             with open(file_csv, "w") as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=",")
                 csv_writer.writerow([i[0] for i in cursor.description])

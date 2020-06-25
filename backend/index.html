@@ -11,7 +11,11 @@
 	</script>
 
 	<style> /* set the CSS */
-		body { font: 12px Arial;}
+		body { 
+			font: 12px Arial;
+			background-color: white;
+			color: black;
+		}
 		.graph-svg-background {
 			background-color: white;
 		}
@@ -86,6 +90,35 @@
 			width: 16px;
 			height: 16px; 
 		}
+		.box {
+			overflow:scroll;
+			height:300px;
+			width:670px;
+			overflow:auto;
+			border: 1px dotted lightgray;
+			padding: 5px;
+			background-color: #FFFFFF;
+			color: #000000;
+		}
+		th { 
+			border-bottom: 1px solid #ccc;
+			padding-left:8px;
+			padding-right:8px;
+		}
+		th:not(:last-child){ 
+			border-right: 1px solid #ccc;
+		}
+		td { 
+			text-align:left;
+			padding-left:8px;
+			padding-right:8px;
+		}
+		td:not(:last-child){ 
+			border-right: 1px solid #ccc;
+		}
+		tr:hover {
+			background-color: #f5f5f5;
+		}
 	</style>
 </head>
 
@@ -95,6 +128,8 @@
 		<h2>Verlauf</h2>
 	</p>
 
+	<div id="graph-box" class="box">
+
 	<div><button id='saveButton'>Export visualization to PNG</button></div>
 
 <script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
@@ -102,6 +137,8 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 
 <script>
+
+	var team_id = "263581"
 
 	var germanFormatters = d3.locale({
 	"decimal": ",",
@@ -157,7 +194,7 @@
 		.y(function(d) { return y(d.rank); });
 
 	// Adds the svg canvas
-	var	svg = d3.select("body")
+	var	svg = d3.select("#graph-box")
 		.append("svg")
 			.attr("width", width + margin.left + margin.right)
 			.attr("height", height + margin.top + margin.bottom)
@@ -168,10 +205,12 @@
 	// Get the data
 	d3.csv("data/folding-stats.csv", function(error, data) {
 		data.forEach(function(d) {
-			d.datetime = parseDate(d.datetime);
-			//d.rank = +(d.rank);
-			d.rank = +(d.rank);
-			last_value=d.rank
+			// only get rows from the right team
+			if ( d.team == team_id ) {
+				d.datetime = parseDate(d.datetime);
+				d.rank = +(d.rank);
+				last_value=d.rank
+			}
 		});
 
 		// Scale the range of the data
@@ -194,6 +233,13 @@
 			.attr("class", "yaxis")
 			.call(yAxis);
 
+		svg.append('text')
+					.attr('x', width/2)
+					.attr('y', -10)
+					.attr('dy', '1em')
+					.attr('text-anchor', 'end')
+					.text("Team: " + team_id)
+					.attr('class', 'zerolinetext');
 		svg.append('line')
 					.attr('x1', 0)
 					.attr('y1', y(10000))
@@ -357,11 +403,14 @@ function svgString2Image( svgString, width, height, format, callback ) {
 }
 
 </script>
+</div>
+
 <div id="history">
 	<h2>Historische Werte</h2>
+	<div id="history-box" class="box">
 	<script>
 		var tabulate = function (data,columns) {
-		var table = d3.select('#history').append('table')
+		var table = d3.select('#history-box').append('table')
 		var thead = table.append('thead')
 		var tbody = table.append('tbody')
 
@@ -381,14 +430,14 @@ function svgString2Image( svgString, width, height, format, callback ) {
 			.data(function(row) {
 				return columns.map(function (column) {
 					if ( column == "change" ) {
-						if ( row[column] == -1 ) {
-							row[column] = "<img src=img/down.png class=change_indicator>"
+						if ( row[column] < 0 ) {
+							row[column] = "<img src=img/down.png class=change_indicator> (" + row[column] + ")"
 						}
-						if ( row[column] == 1 ) {
-							row[column] = "<img src=img/up.png class=change_indicator>"
+						if ( row[column] > 0 ) {
+							row[column] = "<img src=img/up.png class=change_indicator> (" + row[column] + ")"
 						}
 						if ( row[column] == 0 ) {
-							row[column] = "<img src=img/equal.png class=change_indicator>"
+							row[column] = "<img src=img/equal.png class=change_indicator> (" + row[column] + ")"
 						}
 					}
 					return { column: column, value: row[column] }
@@ -406,6 +455,7 @@ function svgString2Image( svgString, width, height, format, callback ) {
 		tabulate(data,columns)
 	})
 	</script>
+	</div>
 </div>
 
 </body>
