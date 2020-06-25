@@ -168,6 +168,7 @@
 			d.timestamp = parseDate(d.timestamp);
 			//d.rank = +(d.rank);
 			d.rank = +(d.rank);
+			last_value=d.rank
 		});
 	
 		// Scale the range of the data
@@ -227,7 +228,7 @@
 						.attr('y', y(1000))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("GOAL: 150")
+						.text("Ziel: 150")
 						.attr('class', 'goallinetext');
 
 		svg.append('text')
@@ -235,9 +236,8 @@
 						.attr('y', y(d3.min(data, function(d) { return d.rank; })))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text(d3.min(data, function(d) { return d.rank; }))
+						.text(last_value)
 						.attr('class', 'lastvaluetext');
-
 		});
 
 
