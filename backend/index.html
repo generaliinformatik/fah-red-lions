@@ -15,7 +15,7 @@
 		.graph-svg-background {
 			background-color: white;
 		}
-		path { 
+		path {
 			stroke: gray;
 			stroke-width: 2;
 			fill: none;
@@ -123,35 +123,34 @@
 		["%b %d", function(d) { return d.getDate() != 1; }],
 		["%B", function(d) { return d.getMonth(); }],
 		["%Y", function() { return true; }]
-	]); 
-
+	]);
 
 	// Set the dimensions of the canvas / graph
 	var	margin = {top: 30, right: 20, bottom: 30, left: 50},
 		width = 600 - margin.left - margin.right,
 		height = 270 - margin.top - margin.bottom;
-	
+
 	// Parse the date / time
 	var	parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-	
+
 	// Set the ranges
 	var	x = d3.time.scale().range([0, width-100]);
 //	var	y = d3.scale.linear().range([height, 0]);
 	var	y = d3.scale.linear().range([0,height]);
-	
+
 	// Define the axes
 	var	xAxis = d3.svg.axis().scale(x)
 		.orient("bottom").ticks(10)
 		.tickFormat(customTimeFormat);
-	
+
 	var	yAxis = d3.svg.axis().scale(y)
 		.orient("left").ticks(10);
-	
+
 	// Define the line
 	var	valueline = d3.svg.line()
 		.x(function(d) { return x(d.timestamp); })
 		.y(function(d) { return y(d.rank); });
-		
+
 	// Adds the svg canvas
 	var	svg = d3.select("body")
 		.append("svg")
@@ -160,7 +159,7 @@
 			.attr("class", "graph-svg-background")
 		.append("g")
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-	
+
 
 	// Get the data
 	d3.csv("data/folding-stats.csv", function(error, data) {
@@ -168,26 +167,26 @@
 			d.timestamp = parseDate(d.timestamp);
 			//d.rank = +(d.rank);
 			d.rank = +(d.rank);
-			last_value=d.rank
+			last_value = d.rank
 		});
-	
+
 		// Scale the range of the data
 		x.domain(d3.extent(data, function(d) { return d.timestamp; }));
 		y.domain([0, d3.max(data, function(d) { return d.rank; })]);
-	
+
 		// Add the valueline path.
-		svg.append("path")	
+		svg.append("path")
 			.attr("class", "line")
 			.attr("d", valueline(data));
-	
+
 		// Add the X Axis
-		svg.append("g")		
+		svg.append("g")
 			.attr("class", "xaxis")
 			.attr("transform", "translate(0," + height + ")")
 			.call(xAxis);
-	
+
 		// Add the Y Axis
-		svg.append("g")		
+		svg.append("g")
 			.attr("class", "yaxis")
 			.call(yAxis);
 
@@ -240,14 +239,11 @@
 						.attr('class', 'lastvaluetext');
 		});
 
-
-
-
-		// Set-up the export button
+// Set-up the export button
 d3.select('#saveButton').on('click', function(){
 //	var svgString = getSVGString(svg.node());
 	var svgString = getSVGString(d3.select('svg').node());
-	
+
 	svgString2Image( svgString, 2*width, 2*height, 'png', save ); // passes Blob and filesize String to the callback
 
 	function save( dataBlob, filesize ){
@@ -256,7 +252,7 @@ d3.select('#saveButton').on('click', function(){
 });
 
 // Below are the functions that handle actual exporting:
-// getSVGString ( svgNode ) and svgString2Image( svgString, width, height, format, callback )
+// getSVGString ( svgNode )
 function getSVGString( svgNode ) {
 	svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
 	var cssStyleText = getCSSStyles( svgNode );
@@ -295,7 +291,7 @@ function getSVGString( svgNode ) {
 		var extractedCSSText = "";
 		for (var i = 0; i < document.styleSheets.length; i++) {
 			var s = document.styleSheets[i];
-			
+
 			try {
 			    if(!s.cssRules) continue;
 			} catch( e ) {
@@ -309,8 +305,6 @@ function getSVGString( svgNode ) {
 					extractedCSSText += cssRules[r].cssText;
 			}
 		}
-		
-
 		return extractedCSSText;
 
 		function contains(str,arr) {
@@ -321,14 +315,14 @@ function getSVGString( svgNode ) {
 
 	function appendCSS( cssText, element ) {
 		var styleElement = document.createElement("style");
-		styleElement.setAttribute("type","text/css"); 
+		styleElement.setAttribute("type","text/css");
 		styleElement.innerHTML = cssText;
 		var refNode = element.hasChildNodes() ? element.children[0] : null;
 		element.insertBefore( styleElement, refNode );
 	}
 }
 
-
+// svgString2Image( svgString, width, height, format, callback )
 function svgString2Image( svgString, width, height, format, callback ) {
 	var format = format ? format : 'png';
 
@@ -353,8 +347,8 @@ function svgString2Image( svgString, width, height, format, callback ) {
 
 	image.src = imgsrc;
 }
-
 </script>
+
 <div id="history">
 	<h2>Historische Werte</h2>
 	<script>
@@ -362,19 +356,19 @@ function svgString2Image( svgString, width, height, format, callback ) {
 		var table = d3.select('#history').append('table')
 		var thead = table.append('thead')
 		var tbody = table.append('tbody')
-	
+
 		thead.append('tr')
 			.selectAll('th')
 			.data(columns)
 			.enter()
 			.append('th')
 			.text(function (d) { return d })
-	
+
 		var rows = tbody.selectAll('tr')
 			.data(data)
 			.enter()
 			.append('tr')
-	
+
 		var cells = rows.selectAll('td')
 			.data(function(row) {
 				return columns.map(function (column) {
@@ -384,10 +378,10 @@ function svgString2Image( svgString, width, height, format, callback ) {
 			.enter()
 		.append('td')
 			.text(function (d) { return d.value })
-	
+
 		return table;
 	}
-	
+
 	d3.csv('data/folding-stats.csv',function (data) {
 		var columns = ['timestamp','team','rank']
 		tabulate(data,columns)
