@@ -24,7 +24,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 #
-
 import os
 import sys
 import json
@@ -37,7 +36,6 @@ import datetime
 import requests
 from datetime import datetime as dt
 import logging
-
 
 def initialize_logger(output_dir):
     logger = logging.getLogger()
@@ -94,8 +92,6 @@ class DictQuery(dict):
 
 def getconfig(this_dict, this_setting, this_default=""):
     return DictQuery(this_dict).get(this_setting, this_default)
-
-
 
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 #print("mypath = ", mypath)
@@ -159,11 +155,12 @@ if(myResponse.ok):
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)')
-            cur.execute('CREATE VIEW IF NOT EXISTS stats_view AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats')
- 
+            cur.execute('CREATE VIEW IF NOT EXISTS view_stats AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats')
+            cur.execute('CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime')
+
             # Here we calculate the difference (change) of the rank in relation
             # to the row before as a backup.
-            # The main calculation is done by the sqlite view 'stats_view' where
+            # The main calculation is done by the sqlite view 'view_stats' where
             # the difference is calculated by the LAG() function. Export is done
             # by exporting the view later where the difference is automatically
             # calculated!
@@ -237,47 +234,35 @@ if(myResponse.ok):
             # initialize csv header if file is not present 
             logging.debug("filename: %s", (file_csv))
             cursor = conn.cursor()
-            cursor.execute("select * from stats_view")
+            cursor.execute("select * from view_stats")
             with open(file_csv, "w") as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=",")
                 csv_writer.writerow([i[0] for i in cursor.description])
                 csv_writer.writerows(cursor)
-
         else:
             logging.info("No CSV file given.")
 
-        # write supporter csv
-        if getconfig(config,"database/supporter","") != "":
-            logging.info("Rank changed. SUPPORTER CSV file is being updated...")
+        # write csv
+        if getconfig(config,"database/csv","") != "":
+            logging.info("Rank changed. CSV file is being updated...")
 
             # write csv if value is given
             file_csv = mypath + "/" + getconfig(config,"database/supporter","")
 
             # initialize csv header if file is not present 
-            if getconfig(config,"database/sqlite","") != "":
-                # write database
-                file_db = mypath + "/" + getconfig(config,"database/sqlite","")
-                conn = sqlite3.connect(file_db)
-                cur = conn.cursor()
-
-                with open(file_csv, 'w') as f:
-                    f.write("supporter\n")
-                    # get unique suppporter names from the last 1 updates
-
-                    sql_select_Query = "select distinct name from team where uid_datetime in (select distinct uid_datetime from team order by uid_datetime desc limit 1) and supporter=1"
-                    cur.execute(sql_select_Query)
-                    records = cur.fetchall()
-                    for row in records:
-                        logging.info("name=%s" % (row[0]))
-                        f.write(row[0]+"\n")
-                    f.close()
-            else:
-                logging.info("No SUPPORTER CSV file given.")
-
+            logging.debug("filename: %s", (file_csv))
+            cursor = conn.cursor()
+            cursor.execute("select * from view_supporter")
+            with open(file_csv, "w") as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=",")
+                csv_writer.writerow([i[0] for i in cursor.description])
+                csv_writer.writerows(cursor)
+        else:
+            logging.info("No CSV file given.")
     else:
         logging.info("Rank unchanged (%s).", rank_new)
         pass
 
 else:
-  # If response code is not ok (200), print the resulting http error code with description
+    # If response code is not ok (200), print the resulting http error code with description
     myResponse.raise_for_status()

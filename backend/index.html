@@ -13,8 +13,14 @@
 	<style> /* set the CSS */
 		body { 
 			font: 12px Arial;
-			background-color: white;
 			color: black;
+			background:url(img/background.png) fixed no-repeat bottom right #BA1319;
+		}
+		h1 {
+			color: white;
+		}
+		h2 {
+			color: white
 		}
 		.graph-svg-background {
 			background-color: white;
@@ -90,6 +96,10 @@
 			width: 16px;
 			height: 16px; 
 		}
+		.help {
+			width: 16px;
+			height: 16px; 
+		}
 		.box {
 			overflow:scroll;
 			height:300px;
@@ -99,6 +109,7 @@
 			padding: 5px;
 			background-color: #FFFFFF;
 			color: #000000;
+			opacity: 0.85;
 		}
 		th { 
 			border-bottom: 1px solid #ccc;
@@ -125,7 +136,7 @@
 <body>
 	<h1>Folding@Home - Team Red Insurance Lions ("Red Lions")</h1>
 	<p>
-		<h2>Verlauf</h2>
+		<h2>Verlauf <a href="#" title="Der Verlaub stellt die grafische Auswertung aller Veränderung im Team-Ranking seit der Aufzeichnung dar. Über die Schaltfläche kann die Grafik als Bilddatei gesichert werden."><img alt="" class="help" src="img/help.png"></a></h2>
 	</p>
 
 	<div id="graph-box" class="box">
@@ -406,7 +417,7 @@ function svgString2Image( svgString, width, height, format, callback ) {
 </div>
 
 <div id="history">
-	<h2>Historische Werte</h2>
+	<h2>Historische Werte <a href="#" title="Die historischen Werte stellen alle Änderungen des Rankings in einer tabellarischen Übersicht dar. Die Prüfung erfolgt in der Regel jede Minute. Es werden jedoch nur Einträge vorgenommen, wenn eine Änderung im Ranking festgestellt wurde."><img alt="" class="help" src="img/help.png"></a></h2>
 	<div id="history-box" class="box">
 	<script>
 		var tabulate = function (data,columns) {
@@ -455,6 +466,51 @@ function svgString2Image( svgString, width, height, format, callback ) {
 		tabulate(data,columns)
 	})
 	</script>
+	</div>
+</div>
+
+
+<div id="supporter">
+	<h2>Supporter <a href="#" title="Die Übersicht stellt die für eine Änderung im Ranking beisteuernden IDs dar. Diese Mitwirkdenden haben während der letzten Veränderung des Team-Rankings sogenannte 'Credits' errechnet und damit zur Veränderung der Platzierung beigetragen. Bei negativen Veränderungen der Platzierung haben diese Mitglieder dabei unterstützt, dass die Veränderung im Sinne des Teams geringer ausfiel."><img alt="" class="help" src="img/help.png"></a></h2>
+	<div id="supporter-box" class="box">
+
+
+		<script>
+			var tabulate2 = function (data,columns) {
+				var table = d3.select('#supporter-box').append('table')
+				var thead = table.append('thead')
+				var tbody = table.append('tbody')
+		
+				thead.append('tr')
+					.selectAll('th')
+					.data(columns)
+					.enter()
+					.append('th')
+					.text(function (d) { return d })
+		
+				var rows = tbody.selectAll('tr')
+					.data(data)
+					.enter()
+					.append('tr')
+		
+				var cells = rows.selectAll('td')
+					.data(function(row) {
+						return columns.map(function (column) {
+							return { column: column, value: row[column] }
+						})
+					})
+					.enter()
+				.append('td')
+					.html(function (d) { return d.value })
+				return table;
+			}
+	
+		d3.csv('data/supporter.csv',function (data) {
+			var columns = ['uid_datetime', 'supporter']
+			tabulate2(data,columns)
+		})
+		</script>
+
 	</div>
 </div>
 

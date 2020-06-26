@@ -80,6 +80,8 @@ Auf Docker Hub steht ein Image für den Gebrauch zur Verfügung. Das Image wird 
 
 Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/repository/docker/generaliinformatik/fah-red-lions-backend)
 
+**Note**: If you use this image on a Synology, please make sure to clear the cache. You would have to delete the content after re-downloading the updated image (Docker -> Container -> Action -> Clear)
+
 ## Test
 
 Delete the file ```data/folding-stats.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp.
