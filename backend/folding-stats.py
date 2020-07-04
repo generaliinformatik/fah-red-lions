@@ -132,7 +132,11 @@ except:
     teamid = ""
 
 if (not teamid.isdigit()):
-    teamid=getconfig(config,"team","0")
+    #teamid=getconfig(config,"team","0")
+    logging.error("Environment var FAH_TEAMID missing or not numeric. Abort!")
+    # exits the program 
+    sys.exit(1)
+
 
 url=getconfig(config,"baseurl","")+str(teamid)
 myResponse = requests.get(url)
@@ -144,6 +148,7 @@ if(myResponse.ok):
 logging.debug("Team ID  : %s", str(teamid))
 logging.debug("Team name: %s", str(getconfig(jStats,"name","")))
 
+logging.info("Propagating team id and name")
 with open("team.js", "w") as f:
     f.write("var team = {\n")
     f.write("id: " + str(getconfig(jStats,"team","")) + ",\n")
@@ -259,8 +264,8 @@ if(myResponse.ok):
                 member_credit=member["credit"]
                 logging.info("%s (%s)", member_name, member_id)
 
-                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
-                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
+                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, team INTEGER, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
+                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', " + str(teamid) +", "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
 
                 conn.commit()
 
