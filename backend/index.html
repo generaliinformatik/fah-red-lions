@@ -10,7 +10,9 @@
 		gtag('config', "UA-170461180-1", { 'anonymize_ip': true });
 	</script>
 	
+	<script type="text/javascript" src="team.js"></script>
 	<script type="text/javascript" src="settings.js"></script>
+	<script type="text/javascript" src="language.js"></script>
 
 	<style> /* set the CSS */
 		body { 
@@ -136,9 +138,9 @@
 </head>
 
 <body>
-	<h1>Folding@Home - Team <a href="#" id="team_stats_link" style="text-decoration: none; color:white;" target=_blank><script>document.write(settings.teamname)</script></a> - Team ID #<script>document.write(settings.team)</script></h1>
+	<h1>Folding@Home - Team <i><a href="#" id="team_stats_link" style="text-decoration: none; color:white;" target=_blank><script>document.write(team.name)</script></a></i> (#<script>document.write(team.id)</script>)</h1>
 
-	<script>document.getElementById('team_stats_link').setAttribute('href', "https://stats.foldingathome.org/team/" + settings.team);</script>
+	<script>document.getElementById('team_stats_link').setAttribute('href', "https://stats.foldingathome.org/team/" + team.id);</script>
 
 	<p>
 		<h2><script>document.write(language.progress["title"])</script> <a id="help_progress" href="#" title="no help avaliable"><img alt="" class="help" src="img/help.png"></a></h2>
@@ -155,7 +157,6 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 
 <script>
-
 	var germanFormatters = d3.locale({
 	"decimal": ",",
 	"thousands": ".",
@@ -222,7 +223,7 @@
 	d3.csv("data/folding-stats.csv", function(error, data) {
 		data.forEach(function(d) {
 			// only get rows from the right team
-			if ( d.team == settings.team ) {
+			if ( d.team == team.id ) {
 				d.datetime = parseDate(d.datetime);
 				d.rank = +(d.rank);
 				last_value=d.rank
@@ -256,56 +257,86 @@
 			.attr("class", "yaxis")
 			.call(yAxis);
 
+
+//		visible_min = d3.min(data, function(d) { return d.rank; })
+		visible_min = 0
+		visible_max = d3.max(data, function(d) { return d.rank; })
 		// Team & day filer info
 		svg.append('text')
 					.attr('x', width/2+60)
 					.attr('y', -20)
 					.attr('dy', '1em')
 					.attr('text-anchor', 'end')
-					.text("Team: " + settings.team + " (last " + settings.limitDays+ " days)")
+					.text("Team: " + team.id + " (last " + settings.limitDays+ " days)")
 					.attr('class', 'zerolinetext');
 		// milestone #1
-		svg.append('line')
-					.attr('x1', 0)
-					.attr('y1', y(settings.milestone1))
-					.attr('x2', width)
-					.attr('y2', y(settings.milestone1))
-					.attr('class', 'zeroline');
-		svg.append('text')
-						.attr('x', width)
-						.attr('y', y(settings.milestone1))
-						.attr('dy', '1em')
-						.attr('text-anchor', 'end')
-						.text(settings.milestone1)
-						.attr('class', 'zerolinetext');
-		// milestone #2
+		if (visible_min < settings.milestone1 && settings.milestone1 < visible_max)
+		{
 		svg.append('line')
 						.attr('x1', 0)
-						.attr('y1', y(settings.milestone2))
+						.attr('y1', y(settings.milestone1))
 						.attr('x2', width)
-						.attr('y2', y(settings.milestone2))
+						.attr('y2', y(settings.milestone1))
 						.attr('class', 'zeroline');
-		svg.append('text')
-						.attr('x', width)
-						.attr('y', y(settings.milestone2))
-						.attr('dy', '1em')
-						.attr('text-anchor', 'end')
-						.text(settings.milestone2)
-						.attr('class', 'zerolinetext');
+				svg.append('text')
+							.attr('x', width)
+							.attr('y', y(settings.milestone1))
+							.attr('dy', '1em')
+							.attr('text-anchor', 'end')
+							.text(settings.milestone1)
+							.attr('class', 'zerolinetext');
+		}
+		// milestone #2
+		if (visible_min < settings.milestone2 && settings.milestone2 < visible_max)
+		{
+			svg.append('line')
+							.attr('x1', 0)
+							.attr('y1', y(settings.milestone2))
+							.attr('x2', width)
+							.attr('y2', y(settings.milestone2))
+							.attr('class', 'zeroline');
+			svg.append('text')
+							.attr('x', width)
+							.attr('y', y(settings.milestone2))
+							.attr('dy', '1em')
+							.attr('text-anchor', 'end')
+							.text(settings.milestone2)
+							.attr('class', 'zerolinetext');
+		}
+		// milestone #3
+		if (visible_min < settings.milestone3 && settings.milestone3 < visible_max)
+		{
+			svg.append('line')
+							.attr('x1', 0)
+							.attr('y1', y(settings.milestone3))
+							.attr('x2', width)
+							.attr('y2', y(settings.milestone3))
+							.attr('class', 'zeroline');
+			svg.append('text')
+							.attr('x', width)
+							.attr('y', y(settings.milestone3))
+							.attr('dy', '1em')
+							.attr('text-anchor', 'end')
+							.text(settings.milestone3)
+							.attr('class', 'zerolinetext');
+		}
 		// goal
-		svg.append('line')
-						.attr('x1', 0)
-						.attr('y1', y(settings.goal))
-						.attr('x2', width)
-						.attr('y2', y(settings.goal))
-						.attr('class', 'goalline');
-		svg.append('text')
-						.attr('x', width)
-						.attr('y', y(settings.goal))
-						.attr('dy', '1em')
-						.attr('text-anchor', 'end')
-						.text(settings.goal)
-						.attr('class', 'goallinetext');
+		if (visible_min < settings.milestone3 && settings.milestone3 < visible_max)
+		{
+			svg.append('line')
+							.attr('x1', 0)
+							.attr('y1', y(settings.goal))
+							.attr('x2', width)
+							.attr('y2', y(settings.goal))
+							.attr('class', 'goalline');
+			svg.append('text')
+							.attr('x', width)
+							.attr('y', y(settings.goal))
+							.attr('dy', '1em')
+							.attr('text-anchor', 'end')
+							.text(settings.goal)
+							.attr('class', 'goallinetext');
+		}
 		// last value
 		svg.append('text')
 						.attr('x', width-80)

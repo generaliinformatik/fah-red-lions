@@ -38,6 +38,11 @@ from datetime import datetime as dt
 import logging
 
 def initialize_logger(output_dir):
+    '''Initialize logging facility
+
+    Args:
+        output_dir (str): path to save log file
+    '''
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -66,7 +71,7 @@ class DictQuery(dict):
     '''
     Dictionary class to get JSON hierarchical data structures
 
-    Parameters:
+    Args:
         dict (dict): Dictionary with hierachical structures
 
     Returns:
@@ -91,7 +96,20 @@ class DictQuery(dict):
         return val
 
 def getconfig(this_dict, this_setting, this_default=""):
+    '''Shortcut function to read  config value of given key from
+    given dictionary
+
+    Args:
+        this_dict (dict): dictionary with key:value
+        this_setting (str): key to be read
+        this_default (str, optional): defaul if key can not be read. Defaults to "".
+
+    Returns:
+        str: read value
+    '''
     return DictQuery(this_dict).get(this_setting, this_default)
+
+
 
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 #print("mypath = ", mypath)
@@ -105,10 +123,38 @@ config_file = mypath + "/folding-stats.json"
 with open(config_file, 'r') as cfg:
     config = loads(cfg.read())
 
+
+logging.info("Checking Folding@Home team name...")
+# try to get Team ID (environment -> json -> error)
+try:
+    teamid = os.environ['FAH_TEAMID']
+except:
+    teamid = ""
+
+if (not teamid.isdigit()):
+    teamid=getconfig(config,"team","0")
+
+url=getconfig(config,"baseurl","")+str(teamid)
+myResponse = requests.get(url)
+
+# For successful API call, response code will be 200 (OK)
+if(myResponse.ok):
+    jStats = json.loads(myResponse.content)
+
+logging.debug("Team ID  : %s", str(teamid))
+logging.debug("Team name: %s", str(getconfig(jStats,"name","")))
+
+with open("team.js", "w") as f:
+    f.write("var team = {\n")
+    f.write("id: " + str(getconfig(jStats,"team","")) + ",\n")
+    f.write("name: '" + str(getconfig(jStats,"name","")) + "'\n")
+    f.write("}")
+f.close()
+
 logging.info("Checking Folding@Home stats...")
 uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 logging.info("UID_DATETIME=%s", (uid_datetime))
-url=getconfig(config,"baseurl","")+str(getconfig(config,"team"))
+url=getconfig(config,"baseurl","")+str(teamid)
 myResponse = requests.get(url)
 
 # For successful API call, response code will be 200 (OK)
@@ -118,15 +164,14 @@ if(myResponse.ok):
     # read rid file (old rank)
     rank_old = 0
     rank_new = 0
-    if getconfig(config,"database/rid","") != "":
-        try:
-            with open(mypath + "/" + getconfig(config,"database/rid",""), 'r') as f:
-                rank_old = f.readline()
-                f.close()
-            logging.debug("Previous rank : %s", (str(rank_old)))
-        except IOError:
-            logging.warning("Could not read file: %s", (mypath + "/" + getconfig(config,"database/rid","")))
-            pass
+    try:
+        with open(mypath + "/data/" + str(teamid) + ".rid", 'r') as f:
+            rank_old = f.readline()
+            f.close()
+        logging.debug("Previous rank : %s", (str(rank_old)))
+    except IOError:
+        logging.warning("Could not read file: %s", (mypath + "/data/" + str(teamid) + ".rid"))
+        pass
 
     rank_new = getconfig(jStats,"rank","0")
     logging.debug("Current rank  : %s", (rank_new))
@@ -134,14 +179,12 @@ if(myResponse.ok):
     # write rid file (new rank (or old if not updated))
     rank_updated = False
     # rank id file
-    if getconfig(config,"database/rid","") != "":
-        # write csv if value is given
-        with open(mypath + "/" + getconfig(config,"database/rid",""), 'w') as f:
-            f.write(str(rank_new))
-            f.close()
+    with open(mypath + "/data/" + str(teamid) + ".rid", 'w') as f:
+        f.write(str(rank_new))
+        f.close()
 
-        if int(rank_new) != int(rank_old):
-            rank_updated = True
+    if int(rank_new) != int(rank_old):
+        rank_updated = True
 
     # update database/csv if rank was changed
     if rank_updated == True:
@@ -155,7 +198,9 @@ if(myResponse.ok):
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)')
+
             cur.execute('CREATE VIEW IF NOT EXISTS view_stats AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats')
+
             cur.execute('CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime')
 
             # Here we calculate the difference (change) of the rank in relation
@@ -181,7 +226,7 @@ if(myResponse.ok):
                 # rank unchanged or invalid
                 change_indicator = 0
 
-            cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), '"+uid_datetime+"',263581, "+str(rank_new)+"," + str(change_indicator) + ")")
+            cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), '" + uid_datetime + "'," + str(teamid) + ", "+str(rank_new)+"," + str(change_indicator) + ")")
             conn.commit()
 
             # getting team member stats (only if team rank is changed)

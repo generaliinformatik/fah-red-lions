@@ -19,16 +19,15 @@ In the file ```folding-stats.json``` the required configurations can be set. The
     "database":{
         "sqlite": "data/folding-stats.db",
         "csv": "data/folding-stats.csv",
-        "rid":"data/folding-stats.rid"
+        "supporter": "data/supporter.csv"
     }
 }
 ```
 
 ```baseurl```: Base url of Folding at Home API  
-```team```: numeric value representing your team  
 ```database/sqlite```: relative path to sqlite database  
 ```database/csv```: relative path to csv file  
-```database/rid```: relative path to rank id file (last known rank)
+```database/supporter```: relative path to supporter file
 
 ## Local execution
 
@@ -40,7 +39,13 @@ Only Python and the corresponding modules must be installed:
 pip3 install -r requirements.txt
 ```
 
-### Execution
+### Manual Execution
+
+At first you have to set the environment variable `FAH_TEAMID` which represents the team id. `0`(zero) is the dafault team, please change it to your team id.
+
+```bash
+export FAH_TEAMID=0
+```
 
 The backend can be started by the call
 
@@ -60,7 +65,7 @@ Build docker container:
 docker build --pull -t generaliinformatik/folding-stats .
 ```
 
-### Execution
+### Docker Container Execution
 
 Run container with command:
 
@@ -71,8 +76,10 @@ docker run -d generaliinformatik/folding-stats
 To mount local directories to your container we suggest the following command. Replace ```<local>``` with the path to a valid local directory and place at least the configuration file into this path.
 
 ```bash
-docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ generaliinformatik/folding-stats
+docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -e FAH_TEAMID=0 generaliinformatik/folding-stats
 ```
+
+**Note**: please change the given team id `0` to your team id
 
 ## Pre-build image
 
@@ -84,7 +91,7 @@ Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/re
 
 ## Test
 
-Delete the file ```data/folding-stats.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp.
+Delete the file ```data/<id>.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp. `<id>` is the given team id via environment var `FAH_TEAMID`.
 
 ## Visualization
 
