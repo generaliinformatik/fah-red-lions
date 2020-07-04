@@ -9,6 +9,8 @@
 		gtag('js', new Date());
 		gtag('config', "UA-170461180-1", { 'anonymize_ip': true });
 	</script>
+	
+	<script type="text/javascript" src="settings.js"></script>
 
 	<style> /* set the CSS */
 		body { 
@@ -134,9 +136,14 @@
 </head>
 
 <body>
-	<h1>Folding@Home - Team Red Insurance Lions ("Red Lions")</h1>
+	<h1>Folding@Home - Team <a href="#" id="team_stats_link" style="text-decoration: none; color:white;" target=_blank><script>document.write(settings.teamname)</script></a> - Team ID #<script>document.write(settings.team)</script></h1>
+
+	<script>document.getElementById('team_stats_link').setAttribute('href', "https://stats.foldingathome.org/team/" + settings.team);</script>
+
 	<p>
-		<h2>Verlauf <a href="#" title="Der Verlaub stellt die grafische Auswertung aller Veränderung im Team-Ranking seit der Aufzeichnung dar. Über die Schaltfläche kann die Grafik als Bilddatei gesichert werden."><img alt="" class="help" src="img/help.png"></a></h2>
+		<h2><script>document.write(language.progress["title"])</script> <a id="help_progress" href="#" title="no help avaliable"><img alt="" class="help" src="img/help.png"></a></h2>
+
+		<script>document.getElementById('help_progress').setAttribute('title', language.progress["help"]);</script>
 	</p>
 
 	<div id="graph-box" class="box">
@@ -148,8 +155,6 @@
 <script src="https://d3js.org/d3.v3.min.js"></script>
 
 <script>
-
-	var team_id = "263581"
 
 	var germanFormatters = d3.locale({
 	"decimal": ",",
@@ -217,12 +222,19 @@
 	d3.csv("data/folding-stats.csv", function(error, data) {
 		data.forEach(function(d) {
 			// only get rows from the right team
-			if ( d.team == team_id ) {
+			if ( d.team == settings.team ) {
 				d.datetime = parseDate(d.datetime);
 				d.rank = +(d.rank);
 				last_value=d.rank
 			}
 		});
+
+		// Limit data to the last x days
+		var cutoffDate = new Date();
+		cutoffDate.setDate(cutoffDate.getDate() - settings.limitDays);
+		data = data.filter(function(d) {
+			return d.datetime > cutoffDate;
+		})
 
 		// Scale the range of the data
 		x.domain(d3.extent(data, function(d) { return d.datetime; }));
@@ -244,53 +256,57 @@
 			.attr("class", "yaxis")
 			.call(yAxis);
 
+		// Team & day filer info
 		svg.append('text')
-					.attr('x', width/2)
-					.attr('y', -10)
+					.attr('x', width/2+60)
+					.attr('y', -20)
 					.attr('dy', '1em')
 					.attr('text-anchor', 'end')
-					.text("Team: " + team_id)
+					.text("Team: " + settings.team + " (last " + settings.limitDays+ " days)")
 					.attr('class', 'zerolinetext');
+		// milestone #1
 		svg.append('line')
 					.attr('x1', 0)
-					.attr('y1', y(10000))
+					.attr('y1', y(settings.milestone1))
 					.attr('x2', width)
-					.attr('y2', y(10000))
+					.attr('y2', y(settings.milestone1))
 					.attr('class', 'zeroline');
 		svg.append('text')
 						.attr('x', width)
-						.attr('y', y(10000))
+						.attr('y', y(settings.milestone1))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("MS#1: 10000")
+						.text(settings.milestone1)
 						.attr('class', 'zerolinetext');
+		// milestone #2
 		svg.append('line')
 						.attr('x1', 0)
-						.attr('y1', y(5000))
+						.attr('y1', y(settings.milestone2))
 						.attr('x2', width)
-						.attr('y2', y(5000))
+						.attr('y2', y(settings.milestone2))
 						.attr('class', 'zeroline');
 		svg.append('text')
 						.attr('x', width)
-						.attr('y', y(5000))
+						.attr('y', y(settings.milestone2))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("MS#2: 5000")
-						.attr('class', 'goallinetext');
+						.text(settings.milestone2)
+						.attr('class', 'zerolinetext');
+		// goal
 		svg.append('line')
 						.attr('x1', 0)
-						.attr('y1', y(1000))
+						.attr('y1', y(settings.goal))
 						.attr('x2', width)
-						.attr('y2', y(1000))
+						.attr('y2', y(settings.goal))
 						.attr('class', 'goalline');
 		svg.append('text')
 						.attr('x', width)
-						.attr('y', y(1000))
+						.attr('y', y(settings.goal))
 						.attr('dy', '1em')
 						.attr('text-anchor', 'end')
-						.text("Ziel: 150")
+						.text(settings.goal)
 						.attr('class', 'goallinetext');
-
+		// last value
 		svg.append('text')
 						.attr('x', width-80)
 						.attr('y', y(d3.min(data, function(d) { return d.rank; })))
@@ -299,8 +315,6 @@
 						.text(last_value)
 						.attr('class', 'lastvaluetext');
 		});
-
-
 
 
 		// Set-up the export button
@@ -417,7 +431,8 @@ function svgString2Image( svgString, width, height, format, callback ) {
 </div>
 
 <div id="history">
-	<h2>Historische Werte <a href="#" title="Die historischen Werte stellen alle Änderungen des Rankings in einer tabellarischen Übersicht dar. Die Prüfung erfolgt in der Regel jede Minute. Es werden jedoch nur Einträge vorgenommen, wenn eine Änderung im Ranking festgestellt wurde."><img alt="" class="help" src="img/help.png"></a></h2>
+	<h2><script>document.write(language.history["title"])</script> <a href="#" id="help_history" title="no help available"><img alt="" class="help" src="img/help.png"></a></h2>
+	<script>document.getElementById('help_history').setAttribute('title', language.history["help"]);</script>
 	<div id="history-box" class="box">
 	<script>
 		var tabulate = function (data,columns) {
@@ -471,7 +486,10 @@ function svgString2Image( svgString, width, height, format, callback ) {
 
 
 <div id="supporter">
-	<h2>Supporter <a href="#" title="Die Übersicht stellt die für eine Änderung im Ranking beisteuernden IDs dar. Diese Mitwirkdenden haben während der letzten Veränderung des Team-Rankings sogenannte 'Credits' errechnet und damit zur Veränderung der Platzierung beigetragen. Bei negativen Veränderungen der Platzierung haben diese Mitglieder dabei unterstützt, dass die Veränderung im Sinne des Teams geringer ausfiel."><img alt="" class="help" src="img/help.png"></a></h2>
+	<h2><script>document.write(language.supporter["title"])</script> <a href="#" id="help_supporter" title="no help available"><img alt="" class="help" src="img/help.png"></a></h2>
+
+	<script>document.getElementById('help_supporter').setAttribute('title', language.supporter["help"]);</script>
+
 	<div id="supporter-box" class="box">
 
 
