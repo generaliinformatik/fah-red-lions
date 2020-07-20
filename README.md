@@ -1,8 +1,10 @@
 # Folding@Home Stats
 
+![line](images/line.png)
 🇩🇪 Die Anleitung zur Einrichtung des Folding@Home-Clients als Team-Mitglied von "The Red Insurance Lions - Worldwide" ist [hier](https://rfuehrer.gitbook.io/red-lions/) zu finden. Wir haben das Format für eine bessere Lesbarkeit auf Gitbook umgestellt.
 
 🇬🇧 Instructions for setting up the Folding@Home client as a team member of "The Red Insurance Lions - Worldwide" can be found [here](https://rfuehrer.gitbook.io/red-lions/v/english/). We have changed the format to Gitbook for better readability.
+![line](images/line.png)
 
 ## Purpose
 
