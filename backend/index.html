@@ -16,8 +16,8 @@
 
 	<style> /* set the CSS */
 		body { 
-			font: 12px Arial;
-			color: black;
+			font: 16px Arial;
+			color: white;
 			background:url(img/background.png) fixed no-repeat bottom right #BA1319;
 		}
 		h1 {
@@ -25,6 +25,11 @@
 		}
 		h2 {
 			color: white
+		}
+		a {
+			color: white;
+			text-decoration: underline;
+			text-decoration-color: white;
 		}
 		.graph-svg-background {
 			background-color: white;
@@ -142,7 +147,11 @@
 
 	<script>document.getElementById('team_stats_link').setAttribute('href', "https://stats.foldingathome.org/team/" + team.id);</script>
 
-	<p>
+		<p>
+			<h2><script>document.write(language.intro["title"])</script></h2>
+			<script>document.write(language.intro["help"])</script>
+		</p>
+		<p>
 		<h2><script>document.write(language.progress["title"])</script> <a id="help_progress" href="#" title="no help avaliable"><img alt="" class="help" src="img/help.png"></a></h2>
 
 		<script>document.getElementById('help_progress').setAttribute('title', language.progress["help"]);</script>
@@ -181,8 +190,11 @@
 		["%b %d", function(d) { return d.getDate() != 1; }],
 		["%B", function(d) { return d.getMonth(); }],
 		["%Y", function() { return true; }]
-	]); 
+	]);
 
+	function percentage(partialValue, totalValue) {
+		return partialValue*totalValue/100;
+	}
 
 	// Set the dimensions of the canvas / graph
 	var	margin = {top: 30, right: 20, bottom: 30, left: 50},
@@ -226,7 +238,7 @@
 			if ( d.team == team.id ) {
 				d.datetime = parseDate(d.datetime);
 				d.rank = +(d.rank);
-				last_value=d.rank
+				last_value = d.rank
 			}
 		});
 
@@ -238,8 +250,11 @@
 		})
 
 		// Scale the range of the data
+		rank_max = d3.max(data, function(d) { return d.rank; })
+		// add 10% of value to y axis to add more space to starting point
+		rank_max_10p =  percentage(10, rank_max);
 		x.domain(d3.extent(data, function(d) { return d.datetime; }));
-		y.domain([0, d3.max(data, function(d) { return d.rank; })]);
+		y.domain([0, rank_max + rank_max_10p]);
 
 		// Add the valueline path.
 		svg.append("path")
@@ -263,88 +278,88 @@
 		visible_max = d3.max(data, function(d) { return d.rank; })
 		// Team & day filer info
 		svg.append('text')
-					.attr('x', width/2+60)
-					.attr('y', -20)
-					.attr('dy', '1em')
-					.attr('text-anchor', 'end')
-					.text("Team: " + team.id + " (last " + settings.limitDays+ " days)")
-					.attr('class', 'zerolinetext');
+			.attr('x', width/2+60)
+			.attr('y', -20)
+			.attr('dy', '1em')
+			.attr('text-anchor', 'end')
+			.text("Team: " + team.id + " (last " + settings.limitDays+ " days)")
+			.attr('class', 'zerolinetext');
 		// milestone #1
 		if (visible_min < settings.milestone1 && settings.milestone1 < visible_max)
 		{
 		svg.append('line')
-						.attr('x1', 0)
-						.attr('y1', y(settings.milestone1))
-						.attr('x2', width)
-						.attr('y2', y(settings.milestone1))
-						.attr('class', 'zeroline');
-				svg.append('text')
-							.attr('x', width)
-							.attr('y', y(settings.milestone1))
-							.attr('dy', '1em')
-							.attr('text-anchor', 'end')
-							.text(settings.milestone1)
-							.attr('class', 'zerolinetext');
+			.attr('x1', 0)
+			.attr('y1', y(settings.milestone1))
+			.attr('x2', width)
+			.attr('y2', y(settings.milestone1))
+			.attr('class', 'zeroline');
+		svg.append('text')
+			.attr('x', width)
+			.attr('y', y(settings.milestone1))
+			.attr('dy', '1em')
+			.attr('text-anchor', 'end')
+			.text(settings.milestone1)
+			.attr('class', 'zerolinetext');
 		}
 		// milestone #2
 		if (visible_min < settings.milestone2 && settings.milestone2 < visible_max)
 		{
 			svg.append('line')
-							.attr('x1', 0)
-							.attr('y1', y(settings.milestone2))
-							.attr('x2', width)
-							.attr('y2', y(settings.milestone2))
-							.attr('class', 'zeroline');
+				.attr('x1', 0)
+				.attr('y1', y(settings.milestone2))
+				.attr('x2', width)
+				.attr('y2', y(settings.milestone2))
+				.attr('class', 'zeroline');
 			svg.append('text')
-							.attr('x', width)
-							.attr('y', y(settings.milestone2))
-							.attr('dy', '1em')
-							.attr('text-anchor', 'end')
-							.text(settings.milestone2)
-							.attr('class', 'zerolinetext');
+				.attr('x', width)
+				.attr('y', y(settings.milestone2))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(settings.milestone2)
+				.attr('class', 'zerolinetext');
 		}
 		// milestone #3
 		if (visible_min < settings.milestone3 && settings.milestone3 < visible_max)
 		{
 			svg.append('line')
-							.attr('x1', 0)
-							.attr('y1', y(settings.milestone3))
-							.attr('x2', width)
-							.attr('y2', y(settings.milestone3))
-							.attr('class', 'zeroline');
+				.attr('x1', 0)
+				.attr('y1', y(settings.milestone3))
+				.attr('x2', width)
+				.attr('y2', y(settings.milestone3))
+				.attr('class', 'zeroline');
 			svg.append('text')
-							.attr('x', width)
-							.attr('y', y(settings.milestone3))
-							.attr('dy', '1em')
-							.attr('text-anchor', 'end')
-							.text(settings.milestone3)
-							.attr('class', 'zerolinetext');
+				.attr('x', width)
+				.attr('y', y(settings.milestone3))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(settings.milestone3)
+				.attr('class', 'zerolinetext');
 		}
 		// goal
 		if (visible_min < settings.milestone3 && settings.milestone3 < visible_max)
 		{
 			svg.append('line')
-							.attr('x1', 0)
-							.attr('y1', y(settings.goal))
-							.attr('x2', width)
-							.attr('y2', y(settings.goal))
-							.attr('class', 'goalline');
+				.attr('x1', 0)
+				.attr('y1', y(settings.goal))
+				.attr('x2', width)
+				.attr('y2', y(settings.goal))
+				.attr('class', 'goalline');
 			svg.append('text')
-							.attr('x', width)
-							.attr('y', y(settings.goal))
-							.attr('dy', '1em')
-							.attr('text-anchor', 'end')
-							.text(settings.goal)
-							.attr('class', 'goallinetext');
+				.attr('x', width)
+				.attr('y', y(settings.goal))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(settings.goal)
+				.attr('class', 'goallinetext');
 		}
 		// last value
 		svg.append('text')
-						.attr('x', width-80)
-						.attr('y', y(d3.min(data, function(d) { return d.rank; })))
-						.attr('dy', '1em')
-						.attr('text-anchor', 'end')
-						.text(last_value)
-						.attr('class', 'lastvaluetext');
+				.attr('x', width-80)
+				.attr('y', y(d3.min(data, function(d) { return d.rank; })))
+				.attr('dy', '1em')
+				.attr('text-anchor', 'end')
+				.text(last_value)
+				.attr('class', 'lastvaluetext');
 		});
 
 

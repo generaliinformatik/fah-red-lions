@@ -1,101 +1,139 @@
-# Quick guide to setting up and configuring the Folding@Home client
+# Folding@Home Stats (Backend)
 
-Red Lions vs. COVID-19 - Together. Digital. For a cure.
-
-Project COVID-19  
-Team "Red Insurance Lions"  
-Team ID 263581  
-
-[🇩🇪 Deutsche Übersetzung](README.de.md)
-
-## Note #1
-
-In the meantime, we also offer a backend component to determine the team ranking. This enables us to determine and track every change in a ranking. This function can be used flexibly as a Python in a docker and can be adapted to any team. You can find further information in the folder [Backend](backend/).
-
-## Note #2
-
-A guide to setting up Folding@Home clients for the benefit of COVID-19 research to participate in a **joint, private commitment**.
+To set up the client on PC systems, please read the setup instructions in [gitbook.io](https://rfuehrer.gitbook.io/red-lions). You can find our previous instructions under [german instructions](INSTRUCTIONS.de.md) or [english instructions](INSTRUCTIONS.md).
 
 ## Purpose
-With the support of the project "Folding@Home" we can all participate in the digital search for a cure for the SARS-CoV-2 virus ("Corona crisis").
 
-By participating in this digital initiative, we send a positive signal to all colleagues, friends, acquaintances and partners in the home office to join in. Everyone can volunteer the computing power of their private PC to join our F@H team "The Red Insurance Lions" ("Red Lions").
+The development of the team ranking is to be monitored in order to be able to show the progress. The backend takes care of the query of the team statistics and the persistence of the relevant data.
 
-We see the search for a cure as a responsibility to protect our family, friends, acquaintances, colleagues and customers in the long term from illness and the effects of the virus.
+## Configuration
 
-## Download the client
+In the file ```folding-stats.json``` the required configurations can be set. The configuration that applies to our team is attached and can be adapted to the respective needs.
 
-By calling the page
+```sql
+{
+    "baseurl":"https://stats.foldingathome.org/api/team/",
+    "team": 263581,
+    "database":{
+        "sqlite": "data/folding-stats.db",
+        "csv": "data/folding-stats.csv",
+        "supporter": "data/supporter.csv"
+    }
+}
+```
 
-https://foldingathome.org/start-folding/
+```baseurl```: Base url of Folding at Home API  
+```database/sqlite```: relative path to sqlite database  
+```database/csv```: relative path to csv file  
+```database/supporter```: relative path to supporter file
 
-you can load the client for your operating system.
+## Local execution
 
-Clients are available for Windows, Mac, Linux, Android and as VMware. Furthermore, images for Docker/Openshift are offered. We will concentrate on the clients Windows and Mac for now.
+### Installation
 
-All downloads in the overview:
-https://foldingathome.org/alternative-downloads/
+Only Python and the corresponding modules must be installed:
 
-## Installation of the client
+```bash
+pip3 install -r requirements.txt
+```
 
-Depending on the existing operating system, the client must be installed like any application. During installation, a background process is installed that performs the calculation according to user settings.
+### Manual Execution
 
-Start the downloaded file and confirm the dialogs of the installation routine. For Windows there is a detailed English manual:
+At first you have to set the environment variable `FAH_TEAMID` which represents the team id. `0`(zero) is the dafault team, please change it to your team id.
 
-https://foldingathome.org/support/faq/installation-guides/windows/custom-installation-advanced-users/
+```bash
+export FAH_TEAMID=0
+```
 
-After installation, the client will run automatically. A first overview will be opened in your browser. This overview can also be opened later by calling the page
+The backend can be started by the call
 
-http://client.foldingathome.org 
+```bash
+python3 folding-stats.py
+```
 
-your browser can be reached again. At the first call or by selecting the link "Change Identity" you can enter the most important data here:
+can be executed.
 
-![img1](images/img1.de.png)
-(sorry, just german dialog shown at the moment)
+## Docker execution
 
-Name : _Your name or pseudonym (as unique as possible)_
-Passkey: _Your individual passkey (see section "Passkey")_
+### Build
 
-It is important to enter the correct Team Number for the Red Insurance Lions Worldwide ("Red Lions") team:
+Build docker container:
 
-**263581**
+```bash
+docker build --pull -t generaliinformatik/folding-stats .
+```
 
-By selecting the "Save" button you can save these settings and close the browser window. The client is already running in the background. At the moment we support the COVID-19 project, so please select in the following screen under
+### Docker Container Execution
 
-I support research fighting: **COVID-19**
+Run container with command:
 
-## Unique key / Passkey (optional)
+```bash
+docker run -d generaliinformatik/folding-stats
+```
 
-You can optionally add to your name/pseudonym under
+To mount local directories to your container we suggest the following command. Replace ```<local>``` with the path to a valid local directory and place at least the configuration file into this path.
 
-https://apps.foldingathome.org/getpasskey
+```bash
+docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -e FAH_TEAMID=0 generaliinformatik/folding-stats
+```
 
-generate an individual key (passkey). With this key, the points can later be clearly assigned to your account. You will also receive bonus points if you create a passkey and enter it in the client.
+**Note**: please change the given team id `0` to your team id
 
-![img2](images/img2.de.png)
+## Pre-build image
 
-It will be sent to your specified email address within a few minutes.
+Auf Docker Hub steht ein Image für den Gebrauch zur Verfügung. Das Image wird immer aktualisiert, wenn der Master Branch in diesem Repository aktualisiert wird. Für die Nutzung dieses Images empfehlen wir die Konfiguration mit den oben dokumentierten Mount-Volumes.
 
-## Selection of the project
+Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/repository/docker/generaliinformatik/fah-red-lions-backend)
 
-After entering the name, the team number and the passkey you will get to the overview after selecting the "Save" button. In this overview there is one more important setting to make: the project you want to support.
+**Note**: If you use this image on a Synology, please make sure to clear the cache. You would have to delete the content after re-downloading the updated image (Docker -> Container -> Action -> Clear)
 
-![img3](images/img3.de.png)
+## Test
 
-You can also support another project at any time, as points are awarded to Team "Red Insurance Lions Worldwide" after each successful calculation. But we ask you to calculate for the project **COVID-19**.
+Delete the file ```data/<id>.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp. `<id>` is the given team id via environment var `FAH_TEAMID`.
 
-img4](images/img4.de.png)
+## Visualization
 
-If you would like to have the calculation performed a little faster and you are not dependent on the performance of your system, you can use the slider
+The values read out can be displayed in the container in the browser via a simple web server on port 8888. For this purpose, the IP of the container with port 8888 must be called up. Alternatively, the port can be redirected when the container is started.
 
-POWER: **Full**
+```bash
+docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -p 8888:8888 generaliinformatik/folding-stats
+```
 
-allocate more system resources to the calculation. Of course, you can always adjust this to your system performance and your requirements. If you want the client to work only when the system is idle, please select the option "Only when idle".
+Note: This is a Quick & Dirty solution to make the data viewable outside the console.
 
-This would complete the basic setting and you support the Folding@Home project in the Generali team. You can see our common success on the page
+## Database
 
-https://stats.foldingathome.org/team/263581
+### Schemes
 
-All that remains to be said:
+#### Table 'stats'
 
-Happy contributing!
+In the table ```stats``` the ranking information of the team is recorded. The recording is usually done when the rank changes (or the *.rid file is deleted)).
+
+```sql
+CREATE TABLE IF NOT EXISTS stats (
+  "datetime" text,
+  "uid_datetime" text,
+  team integer,
+  rank integer,
+  change integer
+);
+```
+
+#### Table 'team'
+
+In the Team table, the team members are recorded with the relevant attributes in order to be able to evaluate their trends historically. At a later stage, the changes can be displayed as a graph or time line, for example. The data is only captured if there have been changes to the rank of the team, since in this case there must have been a change to the attributes ```rank``` or ```credit``` for at least one team member.
+
+The account or accounts responsible for the current change are marked with ```supporter=1```. This check is performed for each ranking change, so that an evaluation of the contributing accounts is possible.
+
+```sql
+CREATE TABLE IF NOT EXISTS team (
+  "datetime" text,
+  "uid_datetime" text,
+  team integer,
+  id integer,
+  name text,
+  rank integer,
+  credit integer,
+  supporter integer
+);
+```

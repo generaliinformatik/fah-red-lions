@@ -1,5 +1,11 @@
 .dockerignore
 Dockerfile
+CODE_OF_CONDUCT.md
+CODEOWNERS
+CONTRIBUTING.md
+LICENSE
+INSTRUCTIONS.de.md
+INSTRUCTIONS.md
 README.md
 .gitignore
 *.csv
@@ -7,3 +13,4 @@ README.md
 *.rid
 data/*
 log/*
+images/*
