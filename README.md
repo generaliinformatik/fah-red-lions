@@ -81,7 +81,7 @@ docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v 
 
 ## Pre-build image
 
-Auf Docker Hub steht ein Image für den Gebrauch zur Verfügung. Das Image wird immer aktualisiert, wenn der Master Branch in diesem Repository aktualisiert wird. Für die Nutzung dieses Images empfehlen wir die Konfiguration mit den oben dokumentierten Mount-Volumes.
+An image is available for use on Docker Hub. The image is always updated when the master branch is updated in this repository. To use this image, we recommend the configuration with the mount volumes documented above.
 
 Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/repository/docker/generaliinformatik/fah-red-lions-backend)
 
