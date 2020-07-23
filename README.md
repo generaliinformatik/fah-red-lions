@@ -10,6 +10,8 @@
 
 The development of the team ranking is to be monitored in order to be able to show the progress. The backend takes care of the query of the team statistics and the persistence of the relevant data.
 
+![dashboard](images/dashboard.png)
+
 ## Configuration
 
 In the file ```folding-stats.json``` the required configurations can be set. The configuration that applies to our team is attached and can be adapted to the respective needs.
