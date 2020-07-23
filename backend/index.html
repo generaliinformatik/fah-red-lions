@@ -16,7 +16,7 @@
 
 	<style> /* set the CSS */
 		body { 
-			font: 16px Arial;
+			font: 12px Arial;
 			color: white;
 			background:url(img/background.png) fixed no-repeat bottom right #BA1319;
 		}
@@ -244,7 +244,7 @@
 
 		// Limit data to the last x days
 		var cutoffDate = new Date();
-		cutoffDate.setDate(cutoffDate.getDate() - settings.limitDays);
+		cutoffDate.setDate(cutoffDate.getDate() - settings.limitdays);
 		data = data.filter(function(d) {
 			return d.datetime > cutoffDate;
 		})
@@ -282,7 +282,7 @@
 			.attr('y', -20)
 			.attr('dy', '1em')
 			.attr('text-anchor', 'end')
-			.text("Team: " + team.id + " (last " + settings.limitDays+ " days)")
+			.text("Team: " + team.id + " (last " + settings.limitdays+ " days)")
 			.attr('class', 'zerolinetext');
 		// milestone #1
 		if (visible_min < settings.milestone1 && settings.milestone1 < visible_max)
@@ -336,7 +336,7 @@
 				.attr('class', 'zerolinetext');
 		}
 		// goal
-		if (visible_min < settings.milestone3 && settings.milestone3 < visible_max)
+		if (visible_min < settings.goal && settings.goal < visible_max)
 		{
 			svg.append('line')
 				.attr('x1', 0)

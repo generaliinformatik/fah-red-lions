@@ -123,6 +123,9 @@ config_file = mypath + "/folding-stats.json"
 with open(config_file, 'r') as cfg:
     config = loads(cfg.read())
 
+# -----------------------------------------------------------
+# ----- Writing environment vars to js files
+# -----------------------------------------------------------
 
 logging.info("Checking Folding@Home team name...")
 # try to get Team ID (environment -> json -> error)
@@ -131,11 +134,52 @@ try:
 except:
     teamid = ""
 
+logging.info("Checking Folding@Home environment vars...")
+try:
+    limitdays = os.environ['FAH_LIMITDAYS']
+except:
+    limitdays = ""
+
+try:
+    milestone1 = os.environ['FAH_MILESTONE1']
+except:
+    milestone1 =""
+
+try:
+    milestone2 = os.environ['FAH_MILESTONE2']
+except:
+    milestone2 = ""
+
+try:
+    milestone3 = os.environ['FAH_MILESTONE3']
+except:
+    milestone3 = ""
+
+try:
+    goal = os.environ['FAH_GOAL']
+except:
+    goal = ""
+
 if (not teamid.isdigit()):
     #teamid=getconfig(config,"team","0")
-    logging.error("Environment var FAH_TEAMID missing or not numeric. Abort!")
-    # exits the program 
+    logging.error("Environment var FAH_TEAM_ID missing or not numeric. Abort!")
+    # exits the program
     sys.exit(1)
+if (not limitdays.isdigit()):
+    logging.warning("Environment var FAH_LIMITDAYS not valid. Setting default value.")
+    limitdays = 99999
+if (not milestone1.isdigit()):
+    logging.warning("Environment var FAH_MILESTONE1 not valid. Setting default value.")
+    milestone1 = -1
+if (not milestone2.isdigit()):
+    logging.warning("Environment var FAH_MILESTONE2 not valid. Setting default value.")
+    milestone2 = -1
+if (not milestone3.isdigit()):
+    logging.warning("Environment var FAH_MILESTONE3 not valid. Setting default value.")
+    milestone3 = -1
+if (not goal.isdigit()):
+    logging.warning("Environment var FAH_GOAL not valid. Setting default value.")
+    goal = 1
 
 
 url=getconfig(config,"baseurl","")+str(teamid)
@@ -145,16 +189,35 @@ myResponse = requests.get(url)
 if(myResponse.ok):
     jStats = json.loads(myResponse.content)
 
-logging.debug("Team ID  : %s", str(teamid))
-logging.debug("Team name: %s", str(getconfig(jStats,"name","")))
+logging.debug("Team ID   : %s", str(teamid))
+logging.debug("Team name : %s", str(getconfig(jStats,"name","")))
 
-logging.info("Propagating team id and name")
-with open("team.js", "w") as f:
+logging.info("Propagating team id and name (%s)" % (mypath + '/team.js'))
+with open(mypath + '/team.js', "w") as f:
     f.write("var team = {\n")
     f.write("id: " + str(getconfig(jStats,"team","")) + ",\n")
     f.write("name: '" + str(getconfig(jStats,"name","")) + "'\n")
     f.write("}")
 f.close()
+
+logging.info("Propagating settings (%s)" % (mypath + '/settings.js'))
+
+with open(mypath + '/settings.js', "w") as f:
+    f.write("var settings = {\n")
+    f.write("limitdays: " + str(limitdays) + ",\n")
+    logging.info("limitdays : %s", str(limitdays))
+    f.write("milestone1: " + str(milestone1) + ",\n")
+    logging.info("milestone1 : %s", str(milestone1))
+    f.write("milestone2: " + str(milestone2) + ",\n")
+    logging.info("milestone2 : %s", str(milestone2))
+    f.write("milestone3: " + str(milestone3) + ",\n")
+    logging.info("milestone3 : %s", str(milestone3))
+    f.write("goal: " + str(goal) + "\n")
+    logging.info("goal : %s", str(goal))
+    f.write("}")
+f.close()
+
+# -----------------------------------------------------------
 
 logging.info("Checking Folding@Home stats...")
 uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')

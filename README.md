@@ -50,6 +50,11 @@ At first you have to set the environment variable `FAH_TEAMID` which represents 
 
 ```bash
 export FAH_TEAMID=0
+export FAH_LIMITDAYS=14
+export FAH_MILESTONE1=10000
+export FAH_MILESTONE2=5000
+export FAH_MILESTONE3=1000
+export FAH_GOAL=150
 ```
 
 The backend can be started by the call
@@ -61,6 +66,28 @@ python3 folding-stats.py
 can be executed.
 
 ## Docker execution
+
+### Compose
+
+```
+version: '2'
+services:
+  fah-red-lions-backend:
+    build: generaliinformatik/fah-red-lions-backend
+    ports:
+      - "80:80"
+    volumes:
+      - <local>/backend/data/:/code/data/
+      - <local>/backend/logs/:/code/logs/
+    environment:
+      FAH_TEAMID: 0
+      FAH_LIMITDAYS: 14
+      FAH_MILESTONE1: 10000
+      FAH_MILESTONE2: 5000
+      FAH_MILESTONE3: 1000
+      FAH_GOAL: 150
+    restart: unless-stopped
+```
 
 ### Build
 
@@ -84,7 +111,7 @@ To mount local directories to your container we suggest the following command. R
 docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -e FAH_TEAMID=0 generaliinformatik/folding-stats
 ```
 
-**Note**: please change the given team id `0` to your team id
+**Note**: please change the given team id `0` to your team id. In this sample all other environment parameters are set to default values.
 
 ## Pre-build image
 
@@ -93,6 +120,19 @@ An image is available for use on Docker Hub. The image is always updated when th
 Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/repository/docker/generaliinformatik/fah-red-lions-backend)
 
 **Note**: If you use this image on a Synology, please make sure to clear the cache. You would have to delete the content after re-downloading the updated image (Docker -> Container -> Action -> Clear)
+
+## Supported environment variables
+
+The display in the graph can be controlled via the following environment variables. When executing in a Docker Container, make sure that the container is restarted as a precaution after a change. If you want to ensure that old values are not used, it is safer to clean the cache beforehand.
+
+| Variable | Required |Default value | Description | Recommended value
+| --- | --- | --- | --- | --- |
+| FAH_TEAMID | yes | 0 | Tead ID of your Folding@Home team | ? |
+| FAH_LIMITDAYS | no | 9999 | Days to be shown in graph | 14 |
+| FAH_MILESTONE1 | no | -1 | 1st milestone line | 10000 |
+| FAH_MILESTONE2 | no | -1 | 2nd milestone line | 5000 |
+| FAH_MILESTONE3 | no | -1 | 3rd milestone line | 1000 |
+| FAH_GOAL | no | 1 | Red goal line | 150 |
 
 ## Test
 
