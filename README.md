@@ -10,7 +10,7 @@
 
 The development of the team ranking is to be monitored in order to be able to show the progress. The backend takes care of the query of the team statistics and the persistence of the relevant data.
 
-<img src="https://github.com/generaliinformatik/fah-red-lions/raw/master/docs/images/dashboard.png" alt="dashboard" width="100%"/>
+<img src="https://github.com/generaliinformatik/fah-red-lions/blob/master/images/dashboard.png?raw=true" alt="dashboard" width="100%"/>
 Example of dashboard
 
 ## Configuration
