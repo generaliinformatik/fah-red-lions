@@ -112,11 +112,11 @@ def getconfig(this_dict, this_setting, this_default=""):
 
 
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
-#print("mypath = ", mypath)
 
 initialize_logger(mypath+"/logs/")
 
 logging.debug("Script was started at %s", (dt.now()))
+logging.debug("Script path: %s", (mypath))
 
 # Load config
 config_file = mypath + "/folding-stats.json"
@@ -205,15 +205,10 @@ logging.info("Propagating settings (%s)" % (mypath + '/settings.js'))
 with open(mypath + '/settings.js', "w") as f:
     f.write("var settings = {\n")
     f.write("limitdays: " + str(limitdays) + ",\n")
-    logging.info("limitdays : %s", str(limitdays))
     f.write("milestone1: " + str(milestone1) + ",\n")
-    logging.info("milestone1 : %s", str(milestone1))
     f.write("milestone2: " + str(milestone2) + ",\n")
-    logging.info("milestone2 : %s", str(milestone2))
     f.write("milestone3: " + str(milestone3) + ",\n")
-    logging.info("milestone3 : %s", str(milestone3))
     f.write("goal: " + str(goal) + "\n")
-    logging.info("goal : %s", str(goal))
     f.write("}")
 f.close()
 
@@ -221,7 +216,7 @@ f.close()
 
 logging.info("Checking Folding@Home stats...")
 uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-logging.info("UID_DATETIME=%s", (uid_datetime))
+logging.debug("UID_DATETIME=%s", (uid_datetime))
 url=getconfig(config,"baseurl","")+str(teamid)
 myResponse = requests.get(url)
 
@@ -260,9 +255,8 @@ if(myResponse.ok):
 
         if getconfig(config,"database/sqlite","") != "":
             # write database
-            logging.info("Rank changed. SQlite is being updated...")
+            logging.debug("Rank changed. SQlite is being updated...")
             file_db = mypath + "/" + getconfig(config,"database/sqlite","")
-            logging.debug("filename: %s", (file_db))
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
             cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)')
@@ -282,14 +276,14 @@ if(myResponse.ok):
                 cur.execute("select rank from stats ORDER by datetime DESC LIMIT 1")
                 record = cur.fetchone()
                 rank_old = record[0]
-                logging.info("old db rank=%s" % (rank_old))
+#                logging.debug("old db rank=%s" % (rank_old))
                 change_indicator = rank_old - rank_new
                 # new rank lower than the old rank
-                if change_indicator > 0:
-                    logging.debug("new rank < from db detected")
+#                if change_indicator > 0:
+#                    logging.debug("new rank < from db detected")
                 # new rank higher than the old rank
-                if change_indicator < 0:
-                    logging.debug("new rank > from db detected")
+#                if change_indicator < 0:
+#                    logging.debug("new rank > from db detected")
             except:
                 # rank unchanged or invalid
                 change_indicator = 0
@@ -301,7 +295,7 @@ if(myResponse.ok):
             logging.info("Getting team member stats...")
             for member in getconfig(jStats,"donors"):
                 member_name=member["name"]
-                logging.info("Collecting team meber data of '%s'", str(member_name))
+                logging.debug("Collecting team meber data of '%s'", str(member_name))
                 member_id=member["id"]
                 try:
                     member_rank=member["rank"]
@@ -313,19 +307,19 @@ if(myResponse.ok):
                     member_supporter=0
                     member_credit=member["credit"]
                     member_old_credit=record[0]
-                    logging.info("checkin changed credits (old/new credits): %s => %s" % (str(member_old_credit), str(member_credit)))
+                    logging.debug("checkin changed credits (old/new credits): %s => %s" % (str(member_old_credit), str(member_credit)))
                     if member_credit != member_old_credit:
                         member_supporter=1
-                        logging.info("member IS A SUPPORTER of this rank change")
+#                        logging.info("member IS A SUPPORTER of this rank change")
                     else:
                         member_supporter=0
-                        logging.info("member is not a supporter of this rank change")
+#                        logging.info("member is not a supporter of this rank change")
                 except:
                     member_rank=999999
                     member_supporter=0
 
                 member_credit=member["credit"]
-                logging.info("%s (%s)", member_name, member_id)
+#                logging.info("%s (%s)", member_name, member_id)
 
                 cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, team INTEGER, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
                 cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', " + str(teamid) +", "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
@@ -335,17 +329,17 @@ if(myResponse.ok):
 #            # Close the connection
 #            conn.close()
         else:
-            logging.info("No CSV file given.")
+            logging.debug("No CSV file given.")
 
         # write csv
         if getconfig(config,"database/csv","") != "":
-            logging.info("Rank changed. CSV file is being updated...")
+            logging.debug("Rank changed. CSV file is being updated...")
 
             # write csv if value is given
             file_csv = mypath + "/" + getconfig(config,"database/csv","")
 
             # initialize csv header if file is not present 
-            logging.debug("filename: %s", (file_csv))
+#            logging.debug("filename: %s", (file_csv))
             cursor = conn.cursor()
             cursor.execute("select * from view_stats")
             with open(file_csv, "w") as csv_file:
@@ -353,17 +347,17 @@ if(myResponse.ok):
                 csv_writer.writerow([i[0] for i in cursor.description])
                 csv_writer.writerows(cursor)
         else:
-            logging.info("No CSV file given.")
+            logging.debug("No CSV file given.")
 
         # write csv
         if getconfig(config,"database/csv","") != "":
-            logging.info("Rank changed. CSV file is being updated...")
+            logging.debug("Rank changed. CSV file is being updated...")
 
             # write csv if value is given
             file_csv = mypath + "/" + getconfig(config,"database/supporter","")
 
             # initialize csv header if file is not present 
-            logging.debug("filename: %s", (file_csv))
+#            logging.debug("filename: %s", (file_csv))
             cursor = conn.cursor()
             cursor.execute("select * from view_supporter")
             with open(file_csv, "w") as csv_file:
@@ -371,9 +365,9 @@ if(myResponse.ok):
                 csv_writer.writerow([i[0] for i in cursor.description])
                 csv_writer.writerows(cursor)
         else:
-            logging.info("No CSV file given.")
+            logging.debug("No CSV file given.")
     else:
-        logging.info("Rank unchanged (%s).", rank_new)
+        logging.debug("Rank unchanged (%s).", rank_new)
         pass
 
 else:
