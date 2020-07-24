@@ -57,13 +57,17 @@ export FAH_MILESTONE3=1000
 export FAH_GOAL=150
 ```
 
-The backend can be started by the call
+The backend which collects stat information can be started by the call
 
 ```bash
 python3 folding-stats.py
 ```
 
-can be executed.
+The websevice to display the stats can be started by the call
+
+```bash
+python3 -m http.server 8888 &.
+```
 
 ## Docker execution
 
@@ -75,7 +79,7 @@ services:
   fah-red-lions-backend:
     build: generaliinformatik/fah-red-lions-backend
     ports:
-      - "80:80"
+      - "8888:8888"
     volumes:
       - <local>/backend/data/:/code/data/
       - <local>/backend/logs/:/code/logs/
