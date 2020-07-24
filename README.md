@@ -34,7 +34,7 @@ In the file ```folding-stats.json``` the required configurations can be set. The
 ```database/csv```: relative path to csv file  
 ```database/supporter```: relative path to supporter file
 
-## Local execution
+## Python execution
 
 ### Installation
 
@@ -46,7 +46,7 @@ pip3 install -r requirements.txt
 
 ### Manual Execution
 
-At first you have to set the environment variable `FAH_TEAMID` which represents the team id. `0`(zero) is the dafault team, please change it to your team id.
+At first you have to set the environment variable `FAH_TEAMID` which represents the team id. `0` (zero) is the dafault team, please change it to your team id.
 
 ```bash
 export FAH_TEAMID=0
@@ -69,7 +69,7 @@ The websevice to display the stats can be started by the call
 python3 -m http.server 8888 &.
 ```
 
-## Docker execution
+## Docker execution (self-hosted)
 
 ### Definition/Compose
 
@@ -77,12 +77,12 @@ python3 -m http.server 8888 &.
 version: '2'
 services:
   fah-red-lions-backend:
-    build: generaliinformatik/fah-red-lions-backend
+    build: .
     ports:
       - "8888:8888"
     volumes:
-      - <local>/backend/data/:/code/data/
-      - <local>/backend/logs/:/code/logs/
+      - ./data/:/code/data/
+      - ./logs/:/code/logs/
     environment:
       FAH_TEAMID: 0
       FAH_LIMITDAYS: 14
@@ -97,20 +97,53 @@ services:
 
 ### Docker Container Execution
 
-To build and run the image:
+To build and run the image/container:
 
 ```bash
 docker-compose build
 docker-compose up
 ```
 
-## Pre-build image
+## Docker execution (pre-build)
+
+### Definition/Compose
 
 An image is available for use on Docker Hub. The image is always updated when the master branch is updated in this repository. To use this image, we recommend the configuration with the mount volumes documented above.
 
 Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/repository/docker/generaliinformatik/fah-red-lions-backend)
 
 **Note**: If you use this image on a Synology, please make sure to clear the cache. You would have to delete the content after re-downloading the updated image (Docker -> Container -> Action -> Clear)
+
+```
+version: '2'
+services:
+  fah-red-lions-backend:
+    image: generaliinformatik/fah-red-lions-backend
+    container_name: fah-red-lions-backend
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./data/:/code/data/
+      - ./logs/:/code/logs/
+    environment:
+      FAH_TEAMID: 0
+      FAH_LIMITDAYS: 14
+      FAH_MILESTONE1: 10000
+      FAH_MILESTONE2: 5000
+      FAH_MILESTONE3: 1000
+      FAH_GOAL: 150
+    restart: unless-stopped
+```
+
+**Note**: please change the given team id within the yaml `0` to your team id.
+
+### Docker container execution
+
+To run the container:
+
+```bash
+docker-compose up
+```
 
 ## Supported environment variables
 
