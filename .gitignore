@@ -4,3 +4,5 @@
 data/*
 logs/*
 img/background.png
+app/team.js
+app/settings.js

@@ -1,3 +1,4 @@
+.gitignore
 .dockerignore
 Dockerfile
 CODE_OF_CONDUCT.md
@@ -7,10 +8,11 @@ LICENSE
 INSTRUCTIONS.de.md
 INSTRUCTIONS.md
 README.md
-.gitignore
 *.csv
 *.db
 *.rid
-data/*
-log/*
 images/*
+app/team.js
+app/settings.js
+app/data/*
+app/log/*

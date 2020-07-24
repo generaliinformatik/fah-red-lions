@@ -115,7 +115,6 @@ mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 initialize_logger(mypath+"/logs/")
 
-logging.debug("Script was started at %s", (dt.now()))
 logging.debug("Script path: %s", (mypath))
 
 # Load config
@@ -127,14 +126,14 @@ with open(config_file, 'r') as cfg:
 # ----- Writing environment vars to js files
 # -----------------------------------------------------------
 
-logging.info("Checking Folding@Home team name...")
+logging.debug("Checking Folding@Home team name...")
 # try to get Team ID (environment -> json -> error)
 try:
     teamid = os.environ['FAH_TEAMID']
 except:
     teamid = ""
 
-logging.info("Checking Folding@Home environment vars...")
+logging.debug("Checking Folding@Home environment vars...")
 try:
     limitdays = os.environ['FAH_LIMITDAYS']
 except:
@@ -192,7 +191,7 @@ if(myResponse.ok):
 logging.debug("Team ID   : %s", str(teamid))
 logging.debug("Team name : %s", str(getconfig(jStats,"name","")))
 
-logging.info("Propagating team id and name (%s)" % (mypath + '/team.js'))
+logging.debug("Propagating team id and name (%s)" % (mypath + '/team.js'))
 with open(mypath + '/team.js', "w") as f:
     f.write("var team = {\n")
     f.write("id: " + str(getconfig(jStats,"team","")) + ",\n")
@@ -200,7 +199,7 @@ with open(mypath + '/team.js', "w") as f:
     f.write("}")
 f.close()
 
-logging.info("Propagating settings (%s)" % (mypath + '/settings.js'))
+logging.debug("Propagating settings (%s)" % (mypath + '/settings.js'))
 
 with open(mypath + '/settings.js', "w") as f:
     f.write("var settings = {\n")
@@ -214,9 +213,8 @@ f.close()
 
 # -----------------------------------------------------------
 
-logging.info("Checking Folding@Home stats...")
 uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-logging.debug("UID_DATETIME=%s", (uid_datetime))
+logging.info("Checking Folding@Home stats... uid:%s", (uid_datetime))
 url=getconfig(config,"baseurl","")+str(teamid)
 myResponse = requests.get(url)
 
@@ -369,6 +367,8 @@ if(myResponse.ok):
     else:
         logging.debug("Rank unchanged (%s).", rank_new)
         pass
+
+    logging.info("Completed.")
 
 else:
     # If response code is not ok (200), print the resulting http error code with description

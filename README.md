@@ -71,7 +71,7 @@ python3 -m http.server 8888 &.
 
 ## Docker execution
 
-### Compose
+### Definition/Compose
 
 ```
 version: '2'
@@ -93,29 +93,16 @@ services:
     restart: unless-stopped
 ```
 
-### Build
-
-Build docker container:
-
-```bash
-docker build --pull -t generaliinformatik/folding-stats .
-```
+**Note**: please change the given team id within the yaml `0` to your team id.
 
 ### Docker Container Execution
 
-Run container with command:
+To build and run the image:
 
 ```bash
-docker run -d generaliinformatik/folding-stats
+docker-compose build
+docker-compose up
 ```
-
-To mount local directories to your container we suggest the following command. Replace ```<local>``` with the path to a valid local directory and place at least the configuration file into this path.
-
-```bash
-docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -e FAH_TEAMID=0 generaliinformatik/folding-stats
-```
-
-**Note**: please change the given team id `0` to your team id. In this sample all other environment parameters are set to default values.
 
 ## Pre-build image
 
@@ -140,17 +127,11 @@ The display in the graph can be controlled via the following environment variabl
 
 ## Test
 
-Delete the file ```data/<id>.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp. `<id>` is the given team id via environment var `FAH_TEAMID`.
+To reset a previous saved rank, please delete the file ```data/<id>.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp. `<id>` is the given team id via environment var `FAH_TEAMID`.
 
 ## Visualization
 
-The values read out can be displayed in the container in the browser via a simple web server on port 8888. For this purpose, the IP of the container with port 8888 must be called up. Alternatively, the port can be redirected when the container is started.
-
-```bash
-docker run -d -v <local>/backend/folding-stats.json:/code/folding-stats.json -v <local>/backend/data/:/code/data/ -v <local>/backend/logs/:/code/logs/ -p 8888:8888 generaliinformatik/folding-stats
-```
-
-Note: This is a Quick & Dirty solution to make the data viewable outside the console.
+The values read out can be displayed in the browser via a simple web server on port 8888. For this purpose, please call [http://127.0.0.1:8888](http://127.0.0.1:8888).
 
 ## Database
 

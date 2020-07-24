@@ -1,0 +1,17 @@
+version: '2'
+services:
+  fah-red-lions-backend:
+    build: .
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./data/:/app/data/
+      - ./logs/:/app/logs/
+    environment:
+      FAH_TEAMID: 263581
+      FAH_LIMITDAYS: 7
+      FAH_MILESTONE1: 10000
+      FAH_MILESTONE2: 5000
+      FAH_MILESTONE3: 1000
+      FAH_GOAL: 150
+    restart: unless-stopped
