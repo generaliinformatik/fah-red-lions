@@ -34,6 +34,14 @@ In the file ```folding-stats.json``` the required configurations can be set. The
 ```database/csv```: relative path to csv file  
 ```database/supporter```: relative path to supporter file
 
+## Email notification
+
+The script to query the rank is executed every minute via the included cron job. It is therefore inevitable that an automatic notification at a certain time can be made by specifying hour:minute. If the environment variable `FAH_PUSHRANK_TIME` is set, a message with the current rank is sent by email when this time is reached. The notification is sent regardless of whether the rank has changed in this query.
+
+Alternatively or as a supplement, the variable `FAH_PUSHRANK_CHANGE` can be set to the value `1` to send a notification for each change. This option is not recommended for frequent changes in ranking. However, if the rank remains reasonably stable, this option can be activated.
+
+Background: A fixed time is used for reporting rank development. In previous versions of the script, the development may have had to be researched via the website. With this feature, reporting is done proactively as a push notification.
+
 ## Python execution
 
 ### Installation
@@ -49,12 +57,22 @@ pip3 install -r requirements.txt
 At first you have to set the environment variable `FAH_TEAMID` which represents the team id. `0` (zero) is the dafault team, please change it to your team id.
 
 ```bash
+# required settings
 export FAH_TEAMID=0
+# recommended settings
 export FAH_LIMITDAYS=14
 export FAH_MILESTONE1=10000
 export FAH_MILESTONE2=5000
 export FAH_MILESTONE3=1000
 export FAH_GOAL=150
+# optional settings
+export FAH_EMAIL_SERVER=smtp.gmail.com
+export FAH_EMAIL_PORT=587
+export FAH_EMAIL_FROM=*****
+export FAH_EMAIL_TO=*****
+export FAH_EMAIL_PASSWORD=*****
+export FAH_PUSHRANK_TIME=08:00
+export FAH_PUSHRANK_CHANGE=1
 ```
 
 The backend which collects stat information can be started by the call
@@ -90,10 +108,17 @@ services:
       FAH_MILESTONE2: 5000
       FAH_MILESTONE3: 1000
       FAH_GOAL: 150
+      FAH_EMAIL_SERVER: smtp.gmail.com
+      FAH_EMAIL_PORT: 587
+      FAH_EMAIL_FROM: *****
+      FAH_EMAIL_TO: *****
+      FAH_EMAIL_PASSWORD: *****
+      FAH_PUSHRANK_TIME: 08:00
+      FAH_PUSHRANK_CHANGE: 1
     restart: unless-stopped
 ```
 
-**Note**: please change the given team id within the yaml `0` to your team id.
+**Notes**: please change the given team id within the yaml `0` to your team id. The given settings for SMTP server and credentials have to be set to your settings.
 
 ### Docker Container Execution
 
@@ -132,10 +157,17 @@ services:
       FAH_MILESTONE2: 5000
       FAH_MILESTONE3: 1000
       FAH_GOAL: 150
+      FAH_EMAIL_SERVER: smtp.gmail.com
+      FAH_EMAIL_PORT: 587
+      FAH_EMAIL_FROM: *****
+      FAH_EMAIL_TO: *****
+      FAH_EMAIL_PASSWORD: *****
+      FAH_PUSHRANK_TIME: 08:00
+      FAH_PUSHRANK_CHANGE: 1
     restart: unless-stopped
 ```
 
-**Note**: please change the given team id within the yaml `0` to your team id.
+**Notes**: please change the given team id within the yaml `0` to your team id. The given settings for SMTP server and credentials have to be set to your settings.
 
 ### Docker container execution
 
@@ -157,6 +189,13 @@ The display in the graph can be controlled via the following environment variabl
 | FAH_MILESTONE2 | no | -1 | 2nd milestone line | 5000 |
 | FAH_MILESTONE3 | no | -1 | 3rd milestone line | 1000 |
 | FAH_GOAL | no | 1 | Red goal line | 150 |
+| FAH_EMAIL_SERVER| no |  | SMTP email server | |
+| FAH_EMAIL_PORT| no |  | SMTP email server port | |
+| FAH_EMAIL_FROM| no |  | Email sender & SMTP username | |
+| FAH_EMAIL_TO| no |  | Email receiver | | 
+| FAH_EMAIL_PASSWORD| no |  |  Email SMTP server password | |
+| FAH_PUSHRANK_TIME| no |  | Hour:Minute to send notification with leading zeros (e.g. 05:03) | |
+| FAH_PUSHRANK_CHANGE| no |  | Send notification if rank changed (1) | 1 |
 
 ## Test
 

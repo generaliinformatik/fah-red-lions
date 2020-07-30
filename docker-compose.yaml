@@ -14,4 +14,11 @@ services:
       FAH_MILESTONE2: 5000
       FAH_MILESTONE3: 1000
       FAH_GOAL: 150
+      FAH_EMAIL_SERVER: smtp.gmail.com
+      FAH_EMAIL_PORT: 587
+      FAH_EMAIL_FROM: *****
+      FAH_EMAIL_TO: *****
+      FAH_EMAIL_PASSWORD: *****
+      FAH_PUSHRANK_TIME: 08:00
+      FAH_PUSHRANK_CHANGE: 0
     restart: unless-stopped

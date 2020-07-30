@@ -37,6 +37,10 @@ import requests
 from datetime import datetime as dt
 import logging
 
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import smtplib
+
 def initialize_logger(output_dir):
     '''Initialize logging facility
 
@@ -109,12 +113,36 @@ def getconfig(this_dict, this_setting, this_default=""):
     '''
     return DictQuery(this_dict).get(this_setting, this_default)
 
+def send_notification(email_subject, email_message):
+    try:
+        msg = MIMEMultipart()
+        # setup the parameters of the message
+        msg['From'] = email_from
+        msg['To'] = email_to
+        msg['Subject'] = email_subject
+        # add in the message body
+        msg.attach(MIMEText(email_message, 'plain', 'utf-8'))
+        #create server
+        server = smtplib.SMTP(email_server, email_port)
+        server.ehlo()
+        server.starttls()
+        server.ehlo
+        # Login Credentials for sending the mail
+        server.login(msg['From'], email_password)
+        # send the message via the server.
+        server.sendmail(msg['From'], msg['To'], msg.as_string())
+        server.quit()
+        logging.debug("Push rank notifcation to: %s", msg['To'])
+    except:
+        logging.error("Failed to send email notification.")
+
 
 
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 initialize_logger(mypath+"/logs/")
 
+logging.debug("Script was started at %s", (dt.now()))
 logging.debug("Script path: %s", (mypath))
 
 # Load config
@@ -126,14 +154,14 @@ with open(config_file, 'r') as cfg:
 # ----- Writing environment vars to js files
 # -----------------------------------------------------------
 
-logging.debug("Checking Folding@Home team name...")
+logging.info("Checking Folding@Home team name...")
 # try to get Team ID (environment -> json -> error)
 try:
     teamid = os.environ['FAH_TEAMID']
 except:
     teamid = ""
 
-logging.debug("Checking Folding@Home environment vars...")
+logging.info("Checking Folding@Home environment vars...")
 try:
     limitdays = os.environ['FAH_LIMITDAYS']
 except:
@@ -158,6 +186,33 @@ try:
     goal = os.environ['FAH_GOAL']
 except:
     goal = ""
+
+try:
+    pushrank_time = os.environ['FAH_PUSHRANK_TIME']
+except:
+    pushrank_time = ""
+try:
+    pushrank_change = os.environ['FAH_PUSHRANK_CHANGE']
+    if pushrank_change != "1":
+        pushrank_change=""
+except:
+    pushrank_change = ""
+
+try:
+    email_server = os.environ['FAH_EMAIL_SERVER']
+    email_port = os.environ['FAH_EMAIL_PORT']
+    email_from = os.environ['FAH_EMAIL_FROM']
+    email_password = os.environ['FAH_EMAIL_PASSWORD']
+    email_to = os.environ['FAH_EMAIL_TO']
+    logging.info("Email settings set successfully!")
+except:
+    logging.info("Email settings not set!")
+    email_server = ""
+    email_port = ""
+    email_from = ""
+    email_password = ""
+    email_to = ""
+
 
 if (not teamid.isdigit()):
     #teamid=getconfig(config,"team","0")
@@ -188,10 +243,12 @@ myResponse = requests.get(url)
 if(myResponse.ok):
     jStats = json.loads(myResponse.content)
 
+teamname= str(getconfig(jStats,"name",""))
+
 logging.debug("Team ID   : %s", str(teamid))
 logging.debug("Team name : %s", str(getconfig(jStats,"name","")))
 
-logging.debug("Propagating team id and name (%s)" % (mypath + '/team.js'))
+logging.info("Propagating team id and name (%s)" % (mypath + '/team.js'))
 with open(mypath + '/team.js', "w") as f:
     f.write("var team = {\n")
     f.write("id: " + str(getconfig(jStats,"team","")) + ",\n")
@@ -199,7 +256,7 @@ with open(mypath + '/team.js', "w") as f:
     f.write("}")
 f.close()
 
-logging.debug("Propagating settings (%s)" % (mypath + '/settings.js'))
+logging.info("Propagating settings (%s)" % (mypath + '/settings.js'))
 
 with open(mypath + '/settings.js', "w") as f:
     f.write("var settings = {\n")
@@ -213,8 +270,10 @@ f.close()
 
 # -----------------------------------------------------------
 
+logging.info("Checking Folding@Home stats...")
 uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-logging.info("Checking Folding@Home stats... uid:%s", (uid_datetime))
+pushrank_timestamp_now=datetime.datetime.now().strftime('%H:%M')
+logging.debug("UID_DATETIME=%s", (uid_datetime))
 url=getconfig(config,"baseurl","")+str(teamid)
 myResponse = requests.get(url)
 
@@ -368,7 +427,29 @@ if(myResponse.ok):
         logging.debug("Rank unchanged (%s).", rank_new)
         pass
 
-    logging.info("Completed.")
+#    if (pushrank_time == pushrank_timestamp_now) or (pushrank_change == "1" and rank_updated == True):
+    if (pushrank_time == pushrank_timestamp_now):
+        # notification at time
+        logging.debug("Trying to send push notification (time)")
+        try:
+            email_subject = "FAH stats for '"+teamname+"': "+str(rank_new)
+            email_message = "FAH rank for '"+teamname+"' at " + str(pushrank_timestamp_now) + " : " + str(rank_new)
+            send_notification(email_subject, email_message)
+        except:
+            logging.error("Sending rank notification (time) failed!")
+        logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
+    else:
+        # notification at change
+        if (pushrank_change == "1" and rank_updated == True):
+            logging.debug("Trying to send push notification (change)")
+            try:
+                email_subject = "FAH changed stats for '"+teamname+"': "+str(rank_new)
+                email_message = "FAH changed rank for '"+teamname+"' : " + str(rank_new)
+                send_notification(email_subject, email_message)
+            except:
+                logging.error("Sending rank notification (change) failed!")
+            logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
+
 
 else:
     # If response code is not ok (200), print the resulting http error code with description
