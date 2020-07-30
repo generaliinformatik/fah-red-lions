@@ -1,10 +1,10 @@
 # Folding@Home Stats
 
-![line](images/line.png)  
+![line](images/line.png)
 🇩🇪 Die Anleitung zur Einrichtung des Folding@Home-Clients als Team-Mitglied von "The Red Insurance Lions - Worldwide" ist [hier](http://bit.ly/red-lions-instructions-german) zu finden. Wir haben das Format für eine bessere Lesbarkeit auf Gitbook umgestellt.
 
 🇬🇧 Instructions for setting up the Folding@Home client as a team member of "The Red Insurance Lions - Worldwide" can be found [here](http://bit.ly/red-lions-instructions-english). We have changed the format to Gitbook for better readability.
-![line](images/line.png). 
+![line](images/line.png)
 
 ## Purpose
 
@@ -29,9 +29,9 @@ In the file ```folding-stats.json``` the required configurations can be set. The
 }
 ```
 
-```baseurl```: Base url of Folding at Home API  
-```database/sqlite```: relative path to sqlite database  
-```database/csv```: relative path to csv file  
+```baseurl```: Base url of Folding at Home API
+```database/sqlite```: relative path to sqlite database
+```database/csv```: relative path to csv file
 ```database/supporter```: relative path to supporter file
 
 ## Email notification
@@ -89,9 +89,9 @@ python3 -m http.server 8888 &.
 
 ## Docker execution (self-hosted)
 
-### Definition/Compose
+### Definition/Compose (self-hosted)
 
-```
+```yaml
 version: '2'
 services:
   fah-red-lions-backend:
@@ -102,6 +102,7 @@ services:
       - ./data/:/code/data/
       - ./logs/:/code/logs/
     environment:
+      TZ=Europe/Berlin
       FAH_TEAMID: 0
       FAH_LIMITDAYS: 14
       FAH_MILESTONE1: 10000
@@ -131,7 +132,7 @@ docker-compose up
 
 ## Docker execution (pre-build)
 
-### Definition/Compose
+### Definition/Compose (pre-build)
 
 An image is available for use on Docker Hub. The image is always updated when the master branch is updated in this repository. To use this image, we recommend the configuration with the mount volumes documented above.
 
@@ -139,7 +140,7 @@ Docker Hub: [generaliinformatik/fah-red-lions-backend](https://hub.docker.com/re
 
 **Note**: If you use this image on a Synology, please make sure to clear the cache. You would have to delete the content after re-downloading the updated image (Docker -> Container -> Action -> Clear)
 
-```
+```yaml
 version: '2'
 services:
   fah-red-lions-backend:
@@ -151,6 +152,7 @@ services:
       - ./data/:/code/data/
       - ./logs/:/code/logs/
     environment:
+      TZ=Europe/Berlin
       FAH_TEAMID: 0
       FAH_LIMITDAYS: 14
       FAH_MILESTONE1: 10000
@@ -183,7 +185,8 @@ The display in the graph can be controlled via the following environment variabl
 
 | Variable | Required |Default value | Description | Recommended value
 | --- | --- | --- | --- | --- |
-| FAH_TEAMID | yes | 0 | Tead ID of your Folding@Home team | ? |
+| TZ | no | UTC | Timezone to display right timestamps in log and to check FAH_PUSHRANK_TIME at the right time |  |
+| FAH_TEAMID | yes | 0 | Team ID of your Folding@Home team | ? |
 | FAH_LIMITDAYS | no | 9999 | Days to be shown in graph | 14 |
 | FAH_MILESTONE1 | no | -1 | 1st milestone line | 10000 |
 | FAH_MILESTONE2 | no | -1 | 2nd milestone line | 5000 |
@@ -192,7 +195,7 @@ The display in the graph can be controlled via the following environment variabl
 | FAH_EMAIL_SERVER| no |  | SMTP email server | |
 | FAH_EMAIL_PORT| no |  | SMTP email server port | |
 | FAH_EMAIL_FROM| no |  | Email sender & SMTP username | |
-| FAH_EMAIL_TO| no |  | Email receiver | | 
+| FAH_EMAIL_TO| no |  | Email receiver | |
 | FAH_EMAIL_PASSWORD| no |  |  Email SMTP server password | |
 | FAH_PUSHRANK_TIME| no |  | Hour:Minute to send notification with leading zeros (e.g. 05:03) | |
 | FAH_PUSHRANK_CHANGE| no |  | Send notification if rank changed (1) | 1 |
