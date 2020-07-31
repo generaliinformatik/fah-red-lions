@@ -71,7 +71,7 @@ export FAH_EMAIL_PORT=587
 export FAH_EMAIL_FROM=*****
 export FAH_EMAIL_TO=*****
 export FAH_EMAIL_PASSWORD=*****
-export FAH_PUSHRANK_TIME=08:00
+export FAH_PUSHRANK_TIME=0800
 export FAH_PUSHRANK_CHANGE=1
 ```
 
@@ -114,7 +114,7 @@ services:
       FAH_EMAIL_FROM: *****
       FAH_EMAIL_TO: *****
       FAH_EMAIL_PASSWORD: *****
-      FAH_PUSHRANK_TIME: 08:00
+      FAH_PUSHRANK_TIME: 0800
       FAH_PUSHRANK_CHANGE: 1
     restart: unless-stopped
 ```
@@ -164,7 +164,7 @@ services:
       FAH_EMAIL_FROM: *****
       FAH_EMAIL_TO: *****
       FAH_EMAIL_PASSWORD: *****
-      FAH_PUSHRANK_TIME: 08:00
+      FAH_PUSHRANK_TIME: 0800
       FAH_PUSHRANK_CHANGE: 1
     restart: unless-stopped
 ```
@@ -197,7 +197,7 @@ The display in the graph can be controlled via the following environment variabl
 | FAH_EMAIL_FROM| no |  | Email sender & SMTP username | |
 | FAH_EMAIL_TO| no |  | Email receiver | |
 | FAH_EMAIL_PASSWORD| no |  |  Email SMTP server password | |
-| FAH_PUSHRANK_TIME| no |  | Hour:Minute to send notification with leading zeros (e.g. 05:03) | |
+| FAH_PUSHRANK_TIME| no |  | Military time format (4 digits, 24-hour-format, leading zeros) to send notification (e.g. 1503 for 03:03pm or 15:03) | |
 | FAH_PUSHRANK_CHANGE| no |  | Send notification if rank changed (1) | 1 |
 
 ## Test
