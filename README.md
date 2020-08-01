@@ -69,10 +69,11 @@ export FAH_GOAL=150
 export FAH_EMAIL_SERVER=smtp.gmail.com
 export FAH_EMAIL_PORT=587
 export FAH_EMAIL_FROM=*****
-export FAH_EMAIL_TO=*****
+export FAH_EMAIL_TO="name1@email, name2@email"
 export FAH_EMAIL_PASSWORD=*****
 export FAH_PUSHRANK_TIME=0800
 export FAH_PUSHRANK_CHANGE=1
+export FAH_PUSHRANK_FORCE=0
 ```
 
 The backend which collects stat information can be started by the call
@@ -112,10 +113,11 @@ services:
       FAH_EMAIL_SERVER: smtp.gmail.com
       FAH_EMAIL_PORT: 587
       FAH_EMAIL_FROM: *****
-      FAH_EMAIL_TO: *****
+      FAH_EMAIL_TO: name1@email, name2@email
       FAH_EMAIL_PASSWORD: *****
       FAH_PUSHRANK_TIME: 0800
       FAH_PUSHRANK_CHANGE: 1
+      FAH_PUSHRANK_FORCE: 0
     restart: unless-stopped
 ```
 
@@ -162,10 +164,11 @@ services:
       FAH_EMAIL_SERVER: smtp.gmail.com
       FAH_EMAIL_PORT: 587
       FAH_EMAIL_FROM: *****
-      FAH_EMAIL_TO: *****
+      FAH_EMAIL_TO: name1@email, name2@email
       FAH_EMAIL_PASSWORD: *****
       FAH_PUSHRANK_TIME: 0800
       FAH_PUSHRANK_CHANGE: 1
+      FAH_PUSHRANK_FORCE: 0
     restart: unless-stopped
 ```
 
@@ -195,10 +198,11 @@ The display in the graph can be controlled via the following environment variabl
 | FAH_EMAIL_SERVER| no |  | SMTP email server | |
 | FAH_EMAIL_PORT| no |  | SMTP email server port | |
 | FAH_EMAIL_FROM| no |  | Email sender & SMTP username | |
-| FAH_EMAIL_TO| no |  | Email receiver | |
+| FAH_EMAIL_TO| no |  | List of push notification receiver; comma separated list of email addresses | |
 | FAH_EMAIL_PASSWORD| no |  |  Email SMTP server password | |
 | FAH_PUSHRANK_TIME| no |  | Military time format (4 digits, 24-hour-format, leading zeros) to send notification (e.g. 1503 for 03:03pm or 15:03) | |
 | FAH_PUSHRANK_CHANGE| no |  | Send notification if rank changed (1) | 1 |
+| FAH_PUSHRANK_FORCE| no |  | Send push notification every check (0). Only recommanded to test email notification | 0 |
 
 ## Test
 

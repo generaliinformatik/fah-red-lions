@@ -115,24 +115,27 @@ def getconfig(this_dict, this_setting, this_default=""):
 
 def send_notification(email_subject, email_message):
     try:
-        msg = MIMEMultipart()
-        # setup the parameters of the message
-        msg['From'] = email_from
-        msg['To'] = email_to
-        msg['Subject'] = email_subject
-        # add in the message body
-        msg.attach(MIMEText(email_message, 'plain', 'utf-8'))
-        #create server
-        server = smtplib.SMTP(email_server, email_port)
-        server.ehlo()
-        server.starttls()
-        server.ehlo
-        # Login Credentials for sending the mail
-        server.login(msg['From'], email_password)
-        # send the message via the server.
-        server.sendmail(msg['From'], msg['To'], msg.as_string())
-        server.quit()
-        logging.debug("Push rank notifcation to: %s", msg['To'])
+        for email_to in email_to_list:
+            msg = MIMEMultipart()
+            # setup the parameters of the message
+
+            msg['From'] = email_from
+            msg['To'] = email_to
+            msg['Subject'] = email_subject
+            # add in the message body
+            msg.attach(MIMEText(email_message, 'plain', 'utf-8'))
+            #create server
+            server = smtplib.SMTP(email_server, email_port)
+            server.ehlo()
+            server.starttls()
+            server.ehlo
+            # Login Credentials for sending the mail
+            server.login(msg['From'], email_password)
+            # send the message via the server.
+
+            server.sendmail(msg['From'], msg['To'], msg.as_string())
+            server.quit()
+            logging.info("Push rank notifcation to: %s", msg['To'])
     except:
         logging.error("Failed to send email notification.")
 
@@ -191,6 +194,7 @@ try:
     pushrank_time = os.environ['FAH_PUSHRANK_TIME']
 except:
     pushrank_time = ""
+
 try:
     pushrank_change = os.environ['FAH_PUSHRANK_CHANGE']
     if pushrank_change != "1":
@@ -199,11 +203,21 @@ except:
     pushrank_change = ""
 
 try:
+    pushrank_force = os.environ['FAH_PUSHRANK_FORCE']
+    if pushrank_force != "1":
+        pushrank_force=""
+except:
+    pushrank_force = ""
+
+try:
     email_server = os.environ['FAH_EMAIL_SERVER']
     email_port = os.environ['FAH_EMAIL_PORT']
     email_from = os.environ['FAH_EMAIL_FROM']
     email_password = os.environ['FAH_EMAIL_PASSWORD']
     email_to = os.environ['FAH_EMAIL_TO']
+
+    #email_to_list = re.split(r'[, ]*',email_to)
+    email_to_list=email_to.replace(',', ' ').split()
     logging.info("Email settings set successfully!")
 except:
     logging.info("Email settings not set!")
@@ -272,7 +286,7 @@ f.close()
 
 logging.info("Checking Folding@Home stats...")
 uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-pushrank_timestamp_now=datetime.datetime.now().strftime('%H:%M')
+pushrank_timestamp_now=datetime.datetime.now().strftime('%H%M')
 logging.debug("UID_DATETIME=%s", (uid_datetime))
 url=getconfig(config,"baseurl","")+str(teamid)
 myResponse = requests.get(url)
@@ -427,13 +441,12 @@ if(myResponse.ok):
         logging.debug("Rank unchanged (%s).", rank_new)
         pass
 
-#    if (pushrank_time == pushrank_timestamp_now) or (pushrank_change == "1" and rank_updated == True):
+    email_subject = "[FAH rank notification] '"+teamname+"': "+str(rank_new)
+    email_message = "FAH rank for '"+teamname+"' - "+ str(datetime.datetime.now().strftime('%d.%m.%Y'))+" at " + str(datetime.datetime.now().strftime('%H:%M')) + "h : " + str(rank_new)
     if (pushrank_time == pushrank_timestamp_now):
         # notification at time
         logging.debug("Trying to send push notification (time)")
         try:
-            email_subject = "FAH stats for '"+teamname+"': "+str(rank_new)
-            email_message = "FAH rank for '"+teamname+"' at " + str(pushrank_timestamp_now) + " : " + str(rank_new)
             send_notification(email_subject, email_message)
         except:
             logging.error("Sending rank notification (time) failed!")
@@ -443,13 +456,19 @@ if(myResponse.ok):
         if (pushrank_change == "1" and rank_updated == True):
             logging.debug("Trying to send push notification (change)")
             try:
-                email_subject = "FAH changed stats for '"+teamname+"': "+str(rank_new)
-                email_message = "FAH changed rank for '"+teamname+"' : " + str(rank_new)
                 send_notification(email_subject, email_message)
             except:
                 logging.error("Sending rank notification (change) failed!")
             logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
 
+    # notification forced
+    if (pushrank_force == "1"):
+        logging.debug("Trying to send push notification (forced)")
+        try:
+            send_notification(email_subject, email_message)
+        except:
+            logging.error("Sending rank notification (forced) failed!")
+        logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
 
 else:
     # If response code is not ok (200), print the resulting http error code with description
