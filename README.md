@@ -248,3 +248,18 @@ CREATE TABLE IF NOT EXISTS team (
   supporter integer
 );
 ```
+
+#### Table 'rankpush'
+
+The table `rankpush` stores all sent push notifications. The rank at the time of the notification is stored. In addition, the mode in which the message is sent (`change`, `time`, `force`) and the delta to the previous value in the respective mode are determined and stored here.
+
+```sql
+CREATE TABLE IF NOT EXISTS rankpush (
+  "datetime" text,
+  uid_datetime text,
+  team integer,
+  mode text,
+  rank integer,
+  delta integer
+);
+```

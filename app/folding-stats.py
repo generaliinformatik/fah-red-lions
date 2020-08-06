@@ -336,6 +336,7 @@ if(myResponse.ok):
 
             cur.execute('CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime')
 
+
             # Here we calculate the difference (change) of the rank in relation
             # to the row before as a backup.
             # The main calculation is done by the sqlite view 'view_stats' where
@@ -441,34 +442,53 @@ if(myResponse.ok):
         logging.debug("Rank unchanged (%s).", rank_new)
         pass
 
-    email_subject = "[FAH rank notification] '"+teamname+"': "+str(rank_new)
-    email_message = "FAH rank for '"+teamname+"' - "+ str(datetime.datetime.now().strftime('%d.%m.%Y'))+" at " + str(datetime.datetime.now().strftime('%H:%M')) + "h : " + str(rank_new)
+    rank_pushed = 0
     if (pushrank_time == pushrank_timestamp_now):
         # notification at time
-        logging.debug("Trying to send push notification (time)")
-        try:
-            send_notification(email_subject, email_message)
-        except:
-            logging.error("Sending rank notification (time) failed!")
-        logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
+        rank_pushed = 1
+        rank_push_mode="time"
     else:
         # notification at change
         if (pushrank_change == "1" and rank_updated == True):
-            logging.debug("Trying to send push notification (change)")
-            try:
-                send_notification(email_subject, email_message)
-            except:
-                logging.error("Sending rank notification (change) failed!")
-            logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
+            rank_pushed = 1
+            rank_push_mode="change"
 
-    # notification forced
     if (pushrank_force == "1"):
-        logging.debug("Trying to send push notification (forced)")
+        # notification forced
+        rank_pushed = 1
+        rank_push_mode="force"
+
+    if (rank_pushed == 1):
+        logging.debug("Rank pushed. SQlite is being updated...")
+        file_db = mypath + "/" + getconfig(config,"database/sqlite","")
+        conn = sqlite3.connect(file_db)
+        cur = conn.cursor()
+        cur.execute('CREATE TABLE IF NOT EXISTS rankpush(datetime TEXT, uid_datetime TEXT, team integer, mode TEXT, rank integer, delta integer)')
+
+        try:
+            sql_select_Query = "select rank from rankpush WHERE mode='"+rank_push_mode+"' ORDER BY uid_datetime DESC LIMIT 1"
+            cur = conn.cursor()
+            cur.execute(sql_select_Query)
+            record = cur.fetchone()
+            rank_old=0
+            rank_old=record[0]
+        except:
+            # error determining value
+            rank_old=rank_new
+
+        # reverse rank delta (positive=rank up, negative=rank down)
+        rank_delta = (rank_new - rank_old)*(-1)
+
+        cur.execute("INSERT INTO rankpush VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', " + str(teamid) +", '" + str(rank_push_mode) + "', "+str(rank_new)+", "+str(rank_delta)+")")
+        conn.commit()
+
+        email_subject = "[FAH rank notification/"+rank_push_mode+"] '"+teamname+"': "+str(rank_new)
+        email_message = "FAH rank for '"+teamname+"' - "+ str(datetime.datetime.now().strftime('%d.%m.%Y'))+" at " + str(datetime.datetime.now().strftime('%H:%M')) + "h :\n\n" + str(rank_new) + "\n\n\nDelta to last mode based (" + rank_push_mode + ") measurement: \n\n" + str(rank_delta)
         try:
             send_notification(email_subject, email_message)
         except:
-            logging.error("Sending rank notification (forced) failed!")
-        logging.info("Push rank (now=%s): %s", pushrank_timestamp_now,rank_new)
+            logging.error("Sending rank notification (%s) failed!", rank_push_mode)
+        logging.info("Push rank (mode=%s, now=%s): %s (delta: %s)", rank_push_mode, pushrank_timestamp_now, rank_new, rank_delta)
 
 else:
     # If response code is not ok (200), print the resulting http error code with description
