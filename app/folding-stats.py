@@ -159,6 +159,14 @@ def send_notification(email_subject, email_message):
 if __name__ == "__main__":
     mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 
+    try:
+        # create dirs
+        Path(mypath + "/data").mkdir(parents=True, exist_ok=True)
+        Path(mypath + "/logs").mkdir(parents=True, exist_ok=True)
+    except Exception:
+        print("Failed to create dirs. Abort.")
+        sys.exit(1)
+
     initialize_logger(mypath + "/logs/")
 
     logging.debug("Script was started at %s", (dt.now()))
@@ -258,11 +266,6 @@ if __name__ == "__main__":
 
     logging.debug("Team ID   : %s", str(teamid))
     logging.debug("Team name : %s", str(getconfig(jStats, "name", "")))
-
-    # create dirs
-    logging.debug("Creating dirs...")
-    Path(mypath + "/data").mkdir(parents=True, exist_ok=True)
-    Path(mypath + "/logs").mkdir(parents=True, exist_ok=True)
 
     logging.info("Propagating team id and name (%s)" % (mypath + "/team.js"))
     with open(mypath + "/team.js", "w") as f:
