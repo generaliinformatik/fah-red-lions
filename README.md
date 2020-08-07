@@ -1,3 +1,5 @@
+![Travis CI](https://travis-ci.org/generaliinformatik/fah-red-lions.svg?branch=master)
+
 # Folding@Home Stats
 
 ![line](images/line.png)
@@ -204,9 +206,34 @@ The display in the graph can be controlled via the following environment variabl
 | FAH_PUSHRANK_CHANGE| no |  | Send notification if rank changed (1) | 1 |
 | FAH_PUSHRANK_FORCE| no |  | Send push notification every check (0). Only recommanded to test email notification | 0 |
 
-## Test
+## Functional test (black box tests)
 
 To reset a previous saved rank, please delete the file ```data/<id>.rid``` to force a write of the current data. The script thinks that the rank has changed and writes the information to the database/CSV with the current timestamp. `<id>` is the given team id via environment var `FAH_TEAMID`.
+
+## Technical test (static test)
+
+### pre-commit
+
+Configuration files are included in this repository to allow the program to be tested with static code analysis. For a pull request, it is expected that these were executed before a commit and that the messages that occurred were corrected (or deliberately excluded). The commands for setting up the tools must be executed in the repository:
+
+```bash
+pip3 install pre-commit
+pip3 install black
+pip3 install flake8
+pre-commit install
+```
+
+The last command installs the pre-commit hook and checks the repository before each commit. If an error occurs, the commit is not committed. If necessary, the tools make minor corrections themselves, which means that the commit is not yet committed in the first operation, but the second attempt is only successful with the previously changed files.
+
+To perform the pre-commit hook checks manually, the hook can be started from the command line with the command:
+
+```bash
+pre-commit run --all-files
+```
+
+### Travis CI
+
+The repository is connected to Travis CI. The checks of the pre-commit are also executed in the CI pipeline, so that the code quality can be equally assured. It is therefore recommended that the pre-commit hooks be executed before a pull request to ensure error-free checks in the CI pipeline.
 
 ## Visualization
 
@@ -246,20 +273,5 @@ CREATE TABLE IF NOT EXISTS team (
   rank integer,
   credit integer,
   supporter integer
-);
-```
-
-#### Table 'rankpush'
-
-The table `rankpush` stores all sent push notifications. The rank at the time of the notification is stored. In addition, the mode in which the message is sent (`change`, `time`, `force`) and the delta to the previous value in the respective mode are determined and stored here.
-
-```sql
-CREATE TABLE IF NOT EXISTS rankpush (
-  "datetime" text,
-  uid_datetime text,
-  team integer,
-  mode text,
-  rank integer,
-  delta integer
 );
 ```

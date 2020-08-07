@@ -9,13 +9,13 @@
 		gtag('js', new Date());
 		gtag('config', "UA-170461180-1", { 'anonymize_ip': true });
 	</script>
-	
+
 	<script type="text/javascript" src="team.js"></script>
 	<script type="text/javascript" src="settings.js"></script>
 	<script type="text/javascript" src="language.js"></script>
 
 	<style> /* set the CSS */
-		body { 
+		body {
 			font: 12px Arial;
 			color: white;
 			background:url(img/background.png) fixed no-repeat bottom right #BA1319;
@@ -34,7 +34,7 @@
 		.graph-svg-background {
 			background-color: white;
 		}
-		path { 
+		path {
 			stroke: gray;
 			stroke-width: 2;
 			fill: none;
@@ -103,11 +103,11 @@
 		}
 		.change_indicator {
 			width: 16px;
-			height: 16px; 
+			height: 16px;
 		}
 		.help {
 			width: 16px;
-			height: 16px; 
+			height: 16px;
 		}
 		.box {
 			overflow:scroll;
@@ -120,20 +120,20 @@
 			color: #000000;
 			opacity: 0.85;
 		}
-		th { 
+		th {
 			border-bottom: 1px solid #ccc;
 			padding-left:8px;
 			padding-right:8px;
 		}
-		th:not(:last-child){ 
+		th:not(:last-child){
 			border-right: 1px solid #ccc;
 		}
-		td { 
+		td {
 			text-align:left;
 			padding-left:8px;
 			padding-right:8px;
 		}
-		td:not(:last-child){ 
+		td:not(:last-child){
 			border-right: 1px solid #ccc;
 		}
 		tr:hover {
@@ -440,7 +440,7 @@ function getSVGString( svgNode ) {
 
 	function appendCSS( cssText, element ) {
 		var styleElement = document.createElement("style");
-		styleElement.setAttribute("type","text/css"); 
+		styleElement.setAttribute("type","text/css");
 		styleElement.innerHTML = cssText;
 		var refNode = element.hasChildNodes() ? element.children[0] : null;
 		element.insertBefore( styleElement, refNode );
@@ -544,19 +544,19 @@ function svgString2Image( svgString, width, height, format, callback ) {
 				var table = d3.select('#supporter-box').append('table')
 				var thead = table.append('thead')
 				var tbody = table.append('tbody')
-		
+
 				thead.append('tr')
 					.selectAll('th')
 					.data(columns)
 					.enter()
 					.append('th')
 					.text(function (d) { return d })
-		
+
 				var rows = tbody.selectAll('tr')
 					.data(data)
 					.enter()
 					.append('tr')
-		
+
 				var cells = rows.selectAll('td')
 					.data(function(row) {
 						return columns.map(function (column) {
@@ -568,7 +568,7 @@ function svgString2Image( svgString, width, height, format, callback ) {
 					.html(function (d) { return d.value })
 				return table;
 			}
-	
+
 		d3.csv('data/supporter.csv',function (data) {
 			var columns = ['uid_datetime', 'supporter']
 			tabulate2(data,columns)

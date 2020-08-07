@@ -3,9 +3,9 @@
 
 Red Lions vs. COVID-19 - Gemeinsam. Digital. Für ein Heilmittel.
 
-Projekt COVID-19  
-Team “Red Insurance Lions”  
-Team ID 263581  
+Projekt COVID-19
+Team “Red Insurance Lions”
+Team ID 263581
 
 [🇬🇧 English translation](README.md)
 
@@ -39,7 +39,7 @@ https://foldingathome.org/alternative-downloads/
 
 ## Installation des Clients
 
-Der Client ist je nach vorhandenem Betriebssystem wie jede Anwendung auch zu installieren. Bei der Installation wird ein Hintergrundprozess installiert, der die Berechnung je nach Benutzereinstellungen vornimmt. 
+Der Client ist je nach vorhandenem Betriebssystem wie jede Anwendung auch zu installieren. Bei der Installation wird ein Hintergrundprozess installiert, der die Berechnung je nach Benutzereinstellungen vornimmt.
 
 Starte die heruntergeladene Datei und bestätigt die Dialoge der Installationsroutine. Für Windows gibt es eine ausführliche englische Anleitung:
 
@@ -47,7 +47,7 @@ https://foldingathome.org/support/faq/installation-guides/windows/custom-install
 
 Nach der Installation wird der Client automatisch ausgeführt. In eurem Browser wird eine ersten Übersicht geöffnet. Diese Übersicht kann später auch durch den Aufruf der Seite
 
-http://client.foldingathome.org 
+http://client.foldingathome.org
 
 Eurem Browser erneut erreicht werden. Beim ersten Aufruf oder durch Auswahl von dem Link “Change Identity” könnt ihr hier die wichtigsten Daten angeben:
 
@@ -60,7 +60,7 @@ Wichtig ist die Eingabe der richtigen Team Number für das Red Insurance Lions W
 
 **263581**
 
-Durch Auswahl der Schaltfläche “Save” könnt ihr diese Einstellungen speichern und das Browser-Fenster schließen. Der Client wird schon im Hintergrund ausgeführt. Derzeit unterstützen wir das Projekt COVID-19, daher ist im folgenden Bildschirm unter 
+Durch Auswahl der Schaltfläche “Save” könnt ihr diese Einstellungen speichern und das Browser-Fenster schließen. Der Client wird schon im Hintergrund ausgeführt. Derzeit unterstützen wir das Projekt COVID-19, daher ist im folgenden Bildschirm unter
 
 I support research fighting: COVID-19
 

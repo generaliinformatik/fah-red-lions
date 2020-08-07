@@ -1,4 +1,3 @@
-
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
@@ -28,9 +27,7 @@ import os
 import sys
 import json
 import csv
-import re
-import subprocess
-from json import loads, dumps
+from json import loads
 import sqlite3
 import datetime
 import requests
@@ -41,38 +38,53 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
 
+
 def initialize_logger(output_dir):
-    '''Initialize logging facility
+    """Initialize logging facility
 
     Args:
         output_dir (str): path to save log file
-    '''
+    """
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
     # create console handler and set level to info
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
     # create error file handler and set level to error
-    handler = logging.FileHandler(os.path.join(output_dir, "folding-stats-error.log"),"a", encoding=None, delay="true")
+    handler = logging.FileHandler(
+        os.path.join(output_dir, "folding-stats-error.log"),
+        "a",
+        encoding=None,
+        delay="true",
+    )
     handler.setLevel(logging.ERROR)
-    formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
     # create debug file handler and set level to debug
-    handler = logging.FileHandler(os.path.join(output_dir, "folding-stats.log"),"a")
+    handler = logging.FileHandler(
+        os.path.join(output_dir, "folding-stats.log"), "a"
+    )
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s")
+    formatter = logging.Formatter(
+        "%(asctime)s.%(msecs)03d [%(levelname)-8s] %(message)s"
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+
 class DictQuery(dict):
-    '''
+    """
     Dictionary class to get JSON hierarchical data structures
 
     Args:
@@ -80,7 +92,8 @@ class DictQuery(dict):
 
     Returns:
         val (dict): Dictionary where hierachical structured keys be seperated with slashes
-    '''
+    """
+
     def get(self, path, default=None):
         keys = path.split("/")
         val = None
@@ -99,8 +112,9 @@ class DictQuery(dict):
 
         return val
 
+
 def getconfig(this_dict, this_setting, this_default=""):
-    '''Shortcut function to read  config value of given key from
+    """Shortcut function to read  config value of given key from
     given dictionary
 
     Args:
@@ -110,8 +124,9 @@ def getconfig(this_dict, this_setting, this_default=""):
 
     Returns:
         str: read value
-    '''
+    """
     return DictQuery(this_dict).get(this_setting, this_default)
+
 
 def send_notification(email_subject, email_message):
     try:
@@ -119,38 +134,37 @@ def send_notification(email_subject, email_message):
             msg = MIMEMultipart()
             # setup the parameters of the message
 
-            msg['From'] = email_from
-            msg['To'] = email_to
-            msg['Subject'] = email_subject
+            msg["From"] = email_from
+            msg["To"] = email_to
+            msg["Subject"] = email_subject
             # add in the message body
-            msg.attach(MIMEText(email_message, 'plain', 'utf-8'))
-            #create server
+            msg.attach(MIMEText(email_message, "plain", "utf-8"))
+            # create server
             server = smtplib.SMTP(email_server, email_port)
             server.ehlo()
             server.starttls()
             server.ehlo
             # Login Credentials for sending the mail
-            server.login(msg['From'], email_password)
+            server.login(msg["From"], email_password)
             # send the message via the server.
 
-            server.sendmail(msg['From'], msg['To'], msg.as_string())
+            server.sendmail(msg["From"], msg["To"], msg.as_string())
             server.quit()
-            logging.info("Push rank notifcation to: %s", msg['To'])
-    except:
+            logging.info("Push rank notifcation to: %s", msg["To"])
+    except Exception:
         logging.error("Failed to send email notification.")
-
 
 
 mypath = os.path.dirname(os.path.realpath(sys.argv[0]))
 
-initialize_logger(mypath+"/logs/")
+initialize_logger(mypath + "/logs/")
 
 logging.debug("Script was started at %s", (dt.now()))
 logging.debug("Script path: %s", (mypath))
 
 # Load config
 config_file = mypath + "/folding-stats.json"
-with open(config_file, 'r') as cfg:
+with open(config_file, "r") as cfg:
     config = loads(cfg.read())
 
 # -----------------------------------------------------------
@@ -159,120 +173,102 @@ with open(config_file, 'r') as cfg:
 
 logging.info("Checking Folding@Home team name...")
 # try to get Team ID (environment -> json -> error)
-try:
-    teamid = os.environ['FAH_TEAMID']
-except:
-    teamid = ""
-
-logging.info("Checking Folding@Home environment vars...")
-try:
-    limitdays = os.environ['FAH_LIMITDAYS']
-except:
-    limitdays = ""
+teamid = os.environ["FAH_TEAMID"] or None
+limitdays = os.environ["FAH_LIMITDAYS"] or None
+milestone1 = os.environ["FAH_MILESTONE1"] or None
+milestone2 = os.environ["FAH_MILESTONE2"] or None
+milestone3 = os.environ["FAH_MILESTONE3"] or None
+goal = os.environ["FAH_GOAL"] or None
+pushrank_time = os.environ["FAH_PUSHRANK_TIME"] or None
 
 try:
-    milestone1 = os.environ['FAH_MILESTONE1']
-except:
-    milestone1 =""
-
-try:
-    milestone2 = os.environ['FAH_MILESTONE2']
-except:
-    milestone2 = ""
-
-try:
-    milestone3 = os.environ['FAH_MILESTONE3']
-except:
-    milestone3 = ""
-
-try:
-    goal = os.environ['FAH_GOAL']
-except:
-    goal = ""
-
-try:
-    pushrank_time = os.environ['FAH_PUSHRANK_TIME']
-except:
-    pushrank_time = ""
-
-try:
-    pushrank_change = os.environ['FAH_PUSHRANK_CHANGE']
+    pushrank_change = os.environ["FAH_PUSHRANK_CHANGE"]
     if pushrank_change != "1":
-        pushrank_change=""
-except:
-    pushrank_change = ""
+        pushrank_change = None
+except Exception:
+    pushrank_change = None
 
 try:
-    pushrank_force = os.environ['FAH_PUSHRANK_FORCE']
+    pushrank_force = os.environ["FAH_PUSHRANK_FORCE"]
     if pushrank_force != "1":
-        pushrank_force=""
-except:
-    pushrank_force = ""
+        pushrank_force = None
+except Exception:
+    pushrank_force = None
 
 try:
-    email_server = os.environ['FAH_EMAIL_SERVER']
-    email_port = os.environ['FAH_EMAIL_PORT']
-    email_from = os.environ['FAH_EMAIL_FROM']
-    email_password = os.environ['FAH_EMAIL_PASSWORD']
-    email_to = os.environ['FAH_EMAIL_TO']
+    email_server = os.environ["FAH_EMAIL_SERVER"]
+    email_port = os.environ["FAH_EMAIL_PORT"]
+    email_from = os.environ["FAH_EMAIL_FROM"]
+    email_password = os.environ["FAH_EMAIL_PASSWORD"]
+    email_to = os.environ["FAH_EMAIL_TO"]
 
-    #email_to_list = re.split(r'[, ]*',email_to)
-    email_to_list=email_to.replace(',', ' ').split()
+    # email_to_list = re.split(r'[, ]*',email_to)
+    email_to_list = email_to.replace(",", " ").split()
     logging.info("Email settings set successfully!")
-except:
+except Exception:
     logging.info("Email settings not set!")
-    email_server = ""
-    email_port = ""
-    email_from = ""
-    email_password = ""
-    email_to = ""
+    email_server = None
+    email_port = None
+    email_from = None
+    email_password = None
+    email_to = None
 
 
-if (not teamid.isdigit()):
-    #teamid=getconfig(config,"team","0")
+if not teamid.isdigit():
+    # teamid=getconfig(config,"team","0")
     logging.error("Environment var FAH_TEAM_ID missing or not numeric. Abort!")
     # exits the program
     sys.exit(1)
-if (not limitdays.isdigit()):
-    logging.warning("Environment var FAH_LIMITDAYS not valid. Setting default value.")
+if not limitdays.isdigit():
+    logging.warning(
+        "Environment var FAH_LIMITDAYS not valid. Setting default value."
+    )
     limitdays = 99999
-if (not milestone1.isdigit()):
-    logging.warning("Environment var FAH_MILESTONE1 not valid. Setting default value.")
+if not milestone1.isdigit():
+    logging.warning(
+        "Environment var FAH_MILESTONE1 not valid. Setting default value."
+    )
     milestone1 = -1
-if (not milestone2.isdigit()):
-    logging.warning("Environment var FAH_MILESTONE2 not valid. Setting default value.")
+if not milestone2.isdigit():
+    logging.warning(
+        "Environment var FAH_MILESTONE2 not valid. Setting default value."
+    )
     milestone2 = -1
-if (not milestone3.isdigit()):
-    logging.warning("Environment var FAH_MILESTONE3 not valid. Setting default value.")
+if not milestone3.isdigit():
+    logging.warning(
+        "Environment var FAH_MILESTONE3 not valid. Setting default value."
+    )
     milestone3 = -1
-if (not goal.isdigit()):
-    logging.warning("Environment var FAH_GOAL not valid. Setting default value.")
+if not goal.isdigit():
+    logging.warning(
+        "Environment var FAH_GOAL not valid. Setting default value."
+    )
     goal = 1
 
 
-url=getconfig(config,"baseurl","")+str(teamid)
+url = getconfig(config, "baseurl", "") + str(teamid)
 myResponse = requests.get(url)
 
 # For successful API call, response code will be 200 (OK)
-if(myResponse.ok):
+if myResponse.ok:
     jStats = json.loads(myResponse.content)
 
-teamname= str(getconfig(jStats,"name",""))
+teamname = str(getconfig(jStats, "name", ""))
 
 logging.debug("Team ID   : %s", str(teamid))
-logging.debug("Team name : %s", str(getconfig(jStats,"name","")))
+logging.debug("Team name : %s", str(getconfig(jStats, "name", "")))
 
-logging.info("Propagating team id and name (%s)" % (mypath + '/team.js'))
-with open(mypath + '/team.js', "w") as f:
+logging.info("Propagating team id and name (%s)" % (mypath + "/team.js"))
+with open(mypath + "/team.js", "w") as f:
     f.write("var team = {\n")
-    f.write("id: " + str(getconfig(jStats,"team","")) + ",\n")
-    f.write("name: '" + str(getconfig(jStats,"name","")) + "'\n")
+    f.write("id: " + str(getconfig(jStats, "team", "")) + ",\n")
+    f.write("name: '" + str(getconfig(jStats, "name", "")) + "'\n")
     f.write("}")
 f.close()
 
-logging.info("Propagating settings (%s)" % (mypath + '/settings.js'))
+logging.info("Propagating settings (%s)" % (mypath + "/settings.js"))
 
-with open(mypath + '/settings.js', "w") as f:
+with open(mypath + "/settings.js", "w") as f:
     f.write("var settings = {\n")
     f.write("limitdays: " + str(limitdays) + ",\n")
     f.write("milestone1: " + str(milestone1) + ",\n")
@@ -285,35 +281,38 @@ f.close()
 # -----------------------------------------------------------
 
 logging.info("Checking Folding@Home stats...")
-uid_datetime=datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-pushrank_timestamp_now=datetime.datetime.now().strftime('%H%M')
+uid_datetime = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+pushrank_timestamp_now = datetime.datetime.now().strftime("%H%M")
 logging.debug("UID_DATETIME=%s", (uid_datetime))
-url=getconfig(config,"baseurl","")+str(teamid)
+url = getconfig(config, "baseurl", "") + str(teamid)
 myResponse = requests.get(url)
 
 # For successful API call, response code will be 200 (OK)
-if(myResponse.ok):
+if myResponse.ok:
     jStats = json.loads(myResponse.content)
 
     # read rid file (old rank)
     rank_old = 0
     rank_new = 0
     try:
-        with open(mypath + "/data/" + str(teamid) + ".rid", 'r') as f:
+        with open(mypath + "/data/" + str(teamid) + ".rid", "r") as f:
             rank_old = f.readline()
             f.close()
         logging.debug("Previous rank : %s", (str(rank_old)))
     except IOError:
-        logging.warning("Could not read file: %s", (mypath + "/data/" + str(teamid) + ".rid"))
+        logging.warning(
+            "Could not read file: %s",
+            (mypath + "/data/" + str(teamid) + ".rid"),
+        )
         pass
 
-    rank_new = getconfig(jStats,"rank","0")
+    rank_new = getconfig(jStats, "rank", "0")
     logging.debug("Current rank  : %s", (rank_new))
 
     # write rid file (new rank (or old if not updated))
     rank_updated = False
     # rank id file
-    with open(mypath + "/data/" + str(teamid) + ".rid", 'w') as f:
+    with open(mypath + "/data/" + str(teamid) + ".rid", "w") as f:
         f.write(str(rank_new))
         f.close()
 
@@ -321,21 +320,26 @@ if(myResponse.ok):
         rank_updated = True
 
     # update database/csv if rank was changed
-    if rank_updated == True:
+    if rank_updated is True:
         logging.info("Rank changed (%s -> %s)", rank_old, rank_new)
 
-        if getconfig(config,"database/sqlite","") != "":
+        if getconfig(config, "database/sqlite", "") != "":
             # write database
             logging.debug("Rank changed. SQlite is being updated...")
-            file_db = mypath + "/" + getconfig(config,"database/sqlite","")
+            file_db = mypath + "/" + getconfig(config, "database/sqlite", "")
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
-            cur.execute('CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)')
+            cur.execute(
+                "CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)"
+            )
 
-            cur.execute('CREATE VIEW IF NOT EXISTS view_stats AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats')
+            cur.execute(
+                "CREATE VIEW IF NOT EXISTS view_stats AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats"
+            )
 
-            cur.execute('CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime')
-
+            cur.execute(
+                'CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime'
+            )
 
             # Here we calculate the difference (change) of the rank in relation
             # to the row before as a backup.
@@ -345,73 +349,108 @@ if(myResponse.ok):
             # calculated!
             change_indicator = 0
             try:
-                cur.execute("select rank from stats ORDER by datetime DESC LIMIT 1")
+                cur.execute(
+                    "select rank from stats ORDER by datetime DESC LIMIT 1"
+                )
                 record = cur.fetchone()
                 rank_old = record[0]
-#                logging.debug("old db rank=%s" % (rank_old))
+                #                logging.debug("old db rank=%s" % (rank_old))
                 change_indicator = rank_old - rank_new
                 # new rank lower than the old rank
-#                if change_indicator > 0:
-#                    logging.debug("new rank < from db detected")
-                # new rank higher than the old rank
-#                if change_indicator < 0:
-#                    logging.debug("new rank > from db detected")
-            except:
+            #                if change_indicator > 0:
+            #                    logging.debug("new rank < from db detected")
+            # new rank higher than the old rank
+            #                if change_indicator < 0:
+            #                    logging.debug("new rank > from db detected")
+            except Exception:
                 # rank unchanged or invalid
                 change_indicator = 0
 
-            cur.execute("INSERT INTO stats VALUES(datetime('now', 'localtime'), '" + uid_datetime + "'," + str(teamid) + ", "+str(rank_new)+"," + str(change_indicator) + ")")
+            cur.execute(
+                "INSERT INTO stats VALUES(datetime('now', 'localtime'), '"
+                + uid_datetime
+                + "',"
+                + str(teamid)
+                + ", "
+                + str(rank_new)
+                + ","
+                + str(change_indicator)
+                + ")"
+            )
             conn.commit()
 
             # getting team member stats (only if team rank is changed)
             logging.info("Getting team member stats...")
-            for member in getconfig(jStats,"donors"):
-                member_name=member["name"]
-                logging.debug("Collecting team meber data of '%s'", str(member_name))
-                member_id=member["id"]
+            for member in getconfig(jStats, "donors"):
+                member_name = member["name"]
+                logging.debug(
+                    "Collecting team meber data of '%s'", str(member_name)
+                )
+                member_id = member["id"]
                 try:
-                    member_rank=member["rank"]
-                    sql_select_Query = "select credit from (select * from team where id="+str(member_id)+" order by datetime DESC LIMIT 2) ORDER BY datetime ASC LIMIT 1"
+                    member_rank = member["rank"]
+                    sql_select_Query = "select credit from (select * from team where id=%s order by datetime DESC LIMIT 2) ORDER BY datetime ASC LIMIT 1"
                     cur = conn.cursor()
-                    cur.execute(sql_select_Query)
+                    cur.execute(sql_select_Query, (str(member_id),))
                     record = cur.fetchone()
 
-                    member_supporter=0
-                    member_credit=member["credit"]
-                    member_old_credit=record[0]
-                    logging.debug("checkin changed credits (old/new credits): %s => %s" % (str(member_old_credit), str(member_credit)))
+                    member_supporter = 0
+                    member_credit = member["credit"]
+                    member_old_credit = record[0]
+                    logging.debug(
+                        "checkin changed credits (old/new credits): %s => %s"
+                        % (str(member_old_credit), str(member_credit))
+                    )
                     if member_credit != member_old_credit:
-                        member_supporter=1
-#                        logging.info("member IS A SUPPORTER of this rank change")
+                        member_supporter = 1
+                    #                        logging.info("member IS A SUPPORTER of this rank change")
                     else:
-                        member_supporter=0
-#                        logging.info("member is not a supporter of this rank change")
-                except:
-                    member_rank=999999
-                    member_supporter=0
+                        member_supporter = 0
+                #                        logging.info("member is not a supporter of this rank change")
+                except Exception:
+                    member_rank = 999999
+                    member_supporter = 0
 
-                member_credit=member["credit"]
-#                logging.info("%s (%s)", member_name, member_id)
+                member_credit = member["credit"]
+                #                logging.info("%s (%s)", member_name, member_id)
 
-                cur.execute('CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, team INTEGER, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)')
-                cur.execute("INSERT INTO team VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', " + str(teamid) +", "+str(member_id)+", '"+str(member_name)+"', "+str(member_rank)+", "+str(member_credit)+", "+str(member_supporter)+")")
+                cur.execute(
+                    "CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, team INTEGER, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)"
+                )
+                cur.execute(
+                    "INSERT INTO team VALUES(datetime('now', 'localtime'), '"
+                    + uid_datetime
+                    + "', "
+                    + str(teamid)
+                    + ", "
+                    + str(member_id)
+                    + ", '"
+                    + str(member_name)
+                    + "', "
+                    + str(member_rank)
+                    + ", "
+                    + str(member_credit)
+                    + ", "
+                    + str(member_supporter)
+                    + ")"
+                )
 
                 conn.commit()
 
-#            # Close the connection
-#            conn.close()
+        #            # Close the connection
+        #            conn.close()
         else:
             logging.debug("No CSV file given.")
 
         # write csv
-        if getconfig(config,"database/csv","") != "":
+        if getconfig(config, "database/csv", "") != "":
             logging.debug("Rank changed. CSV file is being updated...")
 
             # write csv if value is given
-            file_csv = mypath + "/" + getconfig(config,"database/csv","")
+            file_csv = mypath + "/" + getconfig(config, "database/csv", "")
 
-            # initialize csv header if file is not present 
-#            logging.debug("filename: %s", (file_csv))
+            # initialize csv header if file is not present
+            #            logging.debug("filename: %s", (file_csv))
             cursor = conn.cursor()
             cursor.execute("select * from view_stats")
             with open(file_csv, "w") as csv_file:
@@ -422,14 +461,16 @@ if(myResponse.ok):
             logging.debug("No CSV file given.")
 
         # write csv
-        if getconfig(config,"database/csv","") != "":
+        if getconfig(config, "database/csv", "") != "":
             logging.debug("Rank changed. CSV file is being updated...")
 
             # write csv if value is given
-            file_csv = mypath + "/" + getconfig(config,"database/supporter","")
+            file_csv = (
+                mypath + "/" + getconfig(config, "database/supporter", "")
+            )
 
-            # initialize csv header if file is not present 
-#            logging.debug("filename: %s", (file_csv))
+            # initialize csv header if file is not present
+            #            logging.debug("filename: %s", (file_csv))
             cursor = conn.cursor()
             cursor.execute("select * from view_supporter")
             with open(file_csv, "w") as csv_file:
@@ -443,52 +484,94 @@ if(myResponse.ok):
         pass
 
     rank_pushed = 0
-    if (pushrank_time == pushrank_timestamp_now):
+    if pushrank_time == pushrank_timestamp_now:
         # notification at time
         rank_pushed = 1
-        rank_push_mode="time"
+        rank_push_mode = "time"
     else:
         # notification at change
-        if (pushrank_change == "1" and rank_updated == True):
+        if pushrank_change == "1" and rank_updated is True:
             rank_pushed = 1
-            rank_push_mode="change"
+            rank_push_mode = "change"
 
-    if (pushrank_force == "1"):
+    if pushrank_force == "1":
         # notification forced
         rank_pushed = 1
-        rank_push_mode="force"
+        rank_push_mode = "force"
 
-    if (rank_pushed == 1):
+    if rank_pushed == 1:
         logging.debug("Rank pushed. SQlite is being updated...")
-        file_db = mypath + "/" + getconfig(config,"database/sqlite","")
+        file_db = mypath + "/" + getconfig(config, "database/sqlite", "")
         conn = sqlite3.connect(file_db)
         cur = conn.cursor()
-        cur.execute('CREATE TABLE IF NOT EXISTS rankpush(datetime TEXT, uid_datetime TEXT, team integer, mode TEXT, rank integer, delta integer)')
+        cur.execute(
+            "CREATE TABLE IF NOT EXISTS rankpush(datetime TEXT, uid_datetime TEXT, team integer, mode TEXT, rank integer, delta integer)"
+        )
 
         try:
-            sql_select_Query = "select rank from rankpush WHERE mode='"+rank_push_mode+"' ORDER BY uid_datetime DESC LIMIT 1"
+            sql_select_Query = "select rank from rankpush WHERE mode='%s' ORDER BY uid_datetime DESC LIMIT 1"
             cur = conn.cursor()
-            cur.execute(sql_select_Query)
+            cur.execute(sql_select_Query, (rank_push_mode,))
             record = cur.fetchone()
-            rank_old=0
-            rank_old=record[0]
-        except:
+            rank_old = 0
+            rank_old = record[0]
+        except Exception:
             # error determining value
-            rank_old=rank_new
+            rank_old = rank_new
 
         # reverse rank delta (positive=rank up, negative=rank down)
-        rank_delta = (rank_new - rank_old)*(-1)
+        rank_delta = (rank_new - rank_old) * (-1)
 
-        cur.execute("INSERT INTO rankpush VALUES(datetime('now', 'localtime'), '"+uid_datetime+"', " + str(teamid) +", '" + str(rank_push_mode) + "', "+str(rank_new)+", "+str(rank_delta)+")")
+        cur.execute(
+            "INSERT INTO rankpush VALUES(datetime('now', 'localtime'), '"
+            + uid_datetime
+            + "', "
+            + str(teamid)
+            + ", '"
+            + str(rank_push_mode)
+            + "', "
+            + str(rank_new)
+            + ", "
+            + str(rank_delta)
+            + ")"
+        )
         conn.commit()
 
-        email_subject = "[FAH rank notification/"+rank_push_mode+"] '"+teamname+"': "+str(rank_new)
-        email_message = "FAH rank for '"+teamname+"' - "+ str(datetime.datetime.now().strftime('%d.%m.%Y'))+" at " + str(datetime.datetime.now().strftime('%H:%M')) + "h :\n\n" + str(rank_new) + "\n\n\nDelta to last mode based (" + rank_push_mode + ") measurement: \n\n" + str(rank_delta)
+        email_subject = (
+            "[FAH rank notification/"
+            + rank_push_mode
+            + "] '"
+            + teamname
+            + "': "
+            + str(rank_new)
+        )
+        email_message = (
+            "FAH rank for '"
+            + teamname
+            + "' - "
+            + str(datetime.datetime.now().strftime("%d.%m.%Y"))
+            + " at "
+            + str(datetime.datetime.now().strftime("%H:%M"))
+            + "h :\n\n"
+            + str(rank_new)
+            + "\n\n\nDelta to last mode based ("
+            + rank_push_mode
+            + ") measurement: \n\n"
+            + str(rank_delta)
+        )
         try:
             send_notification(email_subject, email_message)
-        except:
-            logging.error("Sending rank notification (%s) failed!", rank_push_mode)
-        logging.info("Push rank (mode=%s, now=%s): %s (delta: %s)", rank_push_mode, pushrank_timestamp_now, rank_new, rank_delta)
+        except Exception:
+            logging.error(
+                "Sending rank notification (%s) failed!", rank_push_mode
+            )
+        logging.info(
+            "Push rank (mode=%s, now=%s): %s (delta: %s)",
+            rank_push_mode,
+            pushrank_timestamp_now,
+            rank_new,
+            rank_delta,
+        )
 
 else:
     # If response code is not ok (200), print the resulting http error code with description

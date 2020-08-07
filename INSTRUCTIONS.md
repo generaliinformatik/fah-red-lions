@@ -2,9 +2,9 @@
 
 Red Lions vs. COVID-19 - Together. Digital. For a cure.
 
-Project COVID-19  
-Team "Red Insurance Lions"  
-Team ID 263581  
+Project COVID-19
+Team "Red Insurance Lions"
+Team ID 263581
 
 [🇩🇪 Deutsche Übersetzung](README.de.md)
 
@@ -46,7 +46,7 @@ https://foldingathome.org/support/faq/installation-guides/windows/custom-install
 
 After installation, the client will run automatically. A first overview will be opened in your browser. This overview can also be opened later by calling the page
 
-http://client.foldingathome.org 
+http://client.foldingathome.org
 
 your browser can be reached again. At the first call or by selecting the link "Change Identity" you can enter the most important data here:
 

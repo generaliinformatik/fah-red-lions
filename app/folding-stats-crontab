@@ -1,3 +1,2 @@
 * * * * * root python3 /app/folding-stats.py >> /app/logs/cron.log
 # Empty line
-
