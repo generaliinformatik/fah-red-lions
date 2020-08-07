@@ -172,10 +172,6 @@ if __name__ == "__main__":
     # -----------------------------------------------------------
     # ----- Writing environment vars to js files
     # -----------------------------------------------------------
-    # create dirs
-    Path(mypath + "/data").mkdir(parents=True, exist_ok=True)
-    Path(mypath + "/logs").mkdir(parents=True, exist_ok=True)
-
     logging.info("Checking Folding@Home team name...")
     # try to get Team ID (environment -> json -> error)
     teamid = os.environ.get("FAH_TEAMID", "")
@@ -262,6 +258,11 @@ if __name__ == "__main__":
 
     logging.debug("Team ID   : %s", str(teamid))
     logging.debug("Team name : %s", str(getconfig(jStats, "name", "")))
+
+    # create dirs
+    logging.debug("Creating dirs...")
+    Path(mypath + "/data").mkdir(parents=True, exist_ok=True)
+    Path(mypath + "/logs").mkdir(parents=True, exist_ok=True)
 
     logging.info("Propagating team id and name (%s)" % (mypath + "/team.js"))
     with open(mypath + "/team.js", "w") as f:
