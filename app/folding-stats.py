@@ -379,11 +379,11 @@ if __name__ == "__main__":
                     #                logging.debug("old db rank=%s" % (rank_old))
                     change_indicator = rank_old - rank_new
                     # new rank lower than the old rank
-                #                if change_indicator > 0:
-                #                    logging.debug("new rank < from db detected")
-                # new rank higher than the old rank
-                #                if change_indicator < 0:
-                #                    logging.debug("new rank > from db detected")
+                    #                if change_indicator > 0:
+                    #                    logging.debug("new rank < from db detected")
+                    # new rank higher than the old rank
+                    #                if change_indicator < 0:
+                    #                    logging.debug("new rank > from db detected")
                 except Exception:
                     # rank unchanged or invalid
                     change_indicator = 0
@@ -489,11 +489,16 @@ if __name__ == "__main__":
                 # initialize csv header if file is not present
                 #            logging.debug("filename: %s", (file_csv))
                 cursor = conn.cursor()
-                cursor.execute("select * from view_stats")
-                with open(file_csv, "w") as csv_file:
-                    csv_writer = csv.writer(csv_file, delimiter=",")
-                    csv_writer.writerow([i[0] for i in cursor.description])
-                    csv_writer.writerows(cursor)
+                try:
+                    cursor.execute("select * from view_stats")
+                    with open(file_csv, "w") as csv_file:
+                        csv_writer = csv.writer(csv_file, delimiter=",")
+                        csv_writer.writerow([i[0] for i in cursor.description])
+                        csv_writer.writerows(cursor)
+                except Exception:
+                    logging.error("Faild to read sqlite3 view 'view_stats')")
+                    logging.error("Faild to propagate view data to CSV file)")
+
             else:
                 logging.debug("No CSV file given.")
 
@@ -509,11 +514,20 @@ if __name__ == "__main__":
                 # initialize csv header if file is not present
                 #            logging.debug("filename: %s", (file_csv))
                 cursor = conn.cursor()
-                cursor.execute("select * from view_supporter")
-                with open(file_csv, "w") as csv_file:
-                    csv_writer = csv.writer(csv_file, delimiter=",")
-                    csv_writer.writerow([i[0] for i in cursor.description])
-                    csv_writer.writerows(cursor)
+                try:
+                    cursor.execute("select * from view_supporter")
+                    with open(file_csv, "w") as csv_file:
+                        csv_writer = csv.writer(csv_file, delimiter=",")
+                        csv_writer.writerow([i[0] for i in cursor.description])
+                        csv_writer.writerows(cursor)
+                except Exception:
+                    logging.error(
+                        "Faild to read sqlite3 view 'view_supporter')"
+                    )
+                    logging.error(
+                        "Faild to propagate supporter data to CSV file)"
+                    )
+
             else:
                 logging.debug("No CSV file given.")
         else:
@@ -551,10 +565,14 @@ if __name__ == "__main__":
             try:
                 sql_select_Query = "SELECT rank FROM rankpush WHERE mode='%s' ORDER BY uid_datetime DESC LIMIT 1"
                 cur = conn.cursor()
-                cur.execute(sql_select_Query, (rank_push_mode,))
-                record = cur.fetchone()
-                rank_old = 0
-                rank_old = record[0]
+                try:
+                    cur.execute(sql_select_Query, (rank_push_mode,))
+                    record = cur.fetchone()
+                    rank_old = 0
+                    rank_old = record[0]
+                except Exception:
+                    rank_old = rank_new
+                    logging.error("Faild to read sqlite3 table 'rank')")
             except Exception:
                 # error determining value
                 rank_old = rank_new
