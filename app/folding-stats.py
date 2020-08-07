@@ -340,17 +340,28 @@ if __name__ == "__main__":
                 )
                 conn = sqlite3.connect(file_db)
                 cur = conn.cursor()
-                cur.execute(
-                    "CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)"
-                )
+                try:
+                    cur.execute(
+                        "CREATE TABLE IF NOT EXISTS stats(datetime TEXT, uid_datetime TEXT, team integer, rank integer, change)"
+                    )
+                except Exception:
+                    logging.error("Faild to create sqlite3 table 'stats'")
 
-                cur.execute(
-                    "CREATE VIEW IF NOT EXISTS view_stats AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats"
-                )
+                try:
+                    cur.execute(
+                        "CREATE VIEW IF NOT EXISTS view_stats AS SELECT datetime,uid_datetime,team,rank,(LAG ( rank, 1, 0 ) OVER (ORDER BY datetime) - rank ) change FROM stats"
+                    )
+                except Exception:
+                    logging.error("Faild to create sqlite3 view 'view_stats'")
 
-                cur.execute(
-                    'CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime'
-                )
+                try:
+                    cur.execute(
+                        'CREATE VIEW IF NOT EXISTS view_supporter AS SELECT s.uid_datetime,group_concat(t.name, ", ") as supporter FROM stats s, team t WHERE s.uid_datetime = t.uid_datetime AND t.supporter=1 GROUP BY s.uid_datetime'
+                    )
+                except Exception:
+                    logging.error(
+                        "Faild to create sqlite3 view 'view_supporter'"
+                    )
 
                 # Here we calculate the difference (change) of the rank in relation
                 # to the row before as a backup.
@@ -377,17 +388,23 @@ if __name__ == "__main__":
                     # rank unchanged or invalid
                     change_indicator = 0
 
-                cur.execute(
-                    "INSERT INTO stats VALUES(datetime('now', 'localtime'), '"
-                    + uid_datetime
-                    + "',"
-                    + str(teamid)
-                    + ", "
-                    + str(rank_new)
-                    + ","
-                    + str(change_indicator)
-                    + ")"
-                )
+                try:
+                    cur.execute(
+                        "INSERT INTO stats VALUES(datetime('now', 'localtime'), '"
+                        + uid_datetime
+                        + "',"
+                        + str(teamid)
+                        + ", "
+                        + str(rank_new)
+                        + ","
+                        + str(change_indicator)
+                        + ")"
+                    )
+                except Exception:
+                    logging.error(
+                        "Faild to insert sqlite3 into table 'stats')"
+                    )
+
                 conn.commit()
 
                 # getting team member stats (only if team rank is changed)
@@ -425,26 +442,35 @@ if __name__ == "__main__":
                     member_credit = member["credit"]
                     #                logging.info("%s (%s)", member_name, member_id)
 
-                    cur.execute(
-                        "CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, team INTEGER, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)"
-                    )
-                    cur.execute(
-                        "INSERT INTO team VALUES(datetime('now', 'localtime'), '"
-                        + uid_datetime
-                        + "', "
-                        + str(teamid)
-                        + ", "
-                        + str(member_id)
-                        + ", '"
-                        + str(member_name)
-                        + "', "
-                        + str(member_rank)
-                        + ", "
-                        + str(member_credit)
-                        + ", "
-                        + str(member_supporter)
-                        + ")"
-                    )
+                    try:
+                        cur.execute(
+                            "CREATE TABLE IF NOT EXISTS team(datetime TEXT, uid_datetime TEXT, team INTEGER, id INTEGER, name TEXT, rank integer, credit INTEGER, supporter INTEGER)"
+                        )
+                    except Exception:
+                        logging.error("Faild to create sqlite3 view 'team')")
+
+                    try:
+                        cur.execute(
+                            "INSERT INTO team VALUES(datetime('now', 'localtime'), '"
+                            + uid_datetime
+                            + "', "
+                            + str(teamid)
+                            + ", "
+                            + str(member_id)
+                            + ", '"
+                            + str(member_name)
+                            + "', "
+                            + str(member_rank)
+                            + ", "
+                            + str(member_credit)
+                            + ", "
+                            + str(member_supporter)
+                            + ")"
+                        )
+                    except Exception:
+                        logging.error(
+                            "Faild to insert sqlite3 into table 'team')"
+                        )
 
                     conn.commit()
 
@@ -515,12 +541,15 @@ if __name__ == "__main__":
             file_db = mypath + "/" + getconfig(config, "database/sqlite", "")
             conn = sqlite3.connect(file_db)
             cur = conn.cursor()
-            cur.execute(
-                "CREATE TABLE IF NOT EXISTS rankpush(datetime TEXT, uid_datetime TEXT, team integer, mode TEXT, rank integer, delta integer)"
-            )
+            try:
+                cur.execute(
+                    "CREATE TABLE IF NOT EXISTS rankpush(datetime TEXT, uid_datetime TEXT, team integer, mode TEXT, rank integer, delta integer)"
+                )
+            except Exception:
+                logging.error("Faild to insert sqlite3 into table 'rankpush')")
 
             try:
-                sql_select_Query = "select rank from rankpush WHERE mode='%s' ORDER BY uid_datetime DESC LIMIT 1"
+                sql_select_Query = "SELECT rank FROM rankpush WHERE mode='%s' ORDER BY uid_datetime DESC LIMIT 1"
                 cur = conn.cursor()
                 cur.execute(sql_select_Query, (rank_push_mode,))
                 record = cur.fetchone()
@@ -533,19 +562,23 @@ if __name__ == "__main__":
             # reverse rank delta (positive=rank up, negative=rank down)
             rank_delta = (rank_new - rank_old) * (-1)
 
-            cur.execute(
-                "INSERT INTO rankpush VALUES(datetime('now', 'localtime'), '"
-                + uid_datetime
-                + "', "
-                + str(teamid)
-                + ", '"
-                + str(rank_push_mode)
-                + "', "
-                + str(rank_new)
-                + ", "
-                + str(rank_delta)
-                + ")"
-            )
+            try:
+                cur.execute(
+                    "INSERT INTO rankpush VALUES(datetime('now', 'localtime'), '"
+                    + uid_datetime
+                    + "', "
+                    + str(teamid)
+                    + ", '"
+                    + str(rank_push_mode)
+                    + "', "
+                    + str(rank_new)
+                    + ", "
+                    + str(rank_delta)
+                    + ")"
+                )
+            except Exception:
+                logging.error("Faild to insert sqlite3 into table 'rankpush')")
+
             conn.commit()
 
             email_subject = (
