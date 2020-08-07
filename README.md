@@ -1,4 +1,4 @@
-![Travis CI](https://travis-ci.org/generaliinformatik/fah-red-lions.svg?branch=master)
+![Travis CI](https://travis-ci.org/generaliinformatik/fah-red-lions.svg?branch=master) [![codecov](https://codecov.io/gh/generaliinformatik/fah-red-lions/branch/master/graph/badge.svg)](https://codecov.io/gh/generaliinformatik/fah-red-lions)
 
 # Folding@Home Stats
 
